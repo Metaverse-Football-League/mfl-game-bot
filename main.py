@@ -18,7 +18,7 @@ import json
 ## Players (DisplayName, OVR, Position, Owner, nationality, nft, rarity)
 f_players = "players.csv"
 ## Teams
-# Name, user_id, boolean(0 : bot, 1 : player)
+# Name, user_id, boolean(0 : bot, 1 : player, form)
 f_teams = "teams.csv"
 ## Goal scorers (number, name, team)
 f_goals = "goals.csv"
@@ -212,27 +212,89 @@ async def simulate(id, vs):
     t_info = await view_team(id)
     p_info = await view_players(id)
 
+    def player_form(teamform):
+
+        i = randint(1, 100)
+
+        dict_form = {
+            0: -5,
+            1: -3,
+            2: -1,
+            3: 1,
+            4: 3,
+            5: 5
+        }
+
+        playerform = int(teamform)
+
+        if i < 30:
+            playerform -= 1
+        if i > 70:
+            playerform += 1
+
+        if playerform < 0:
+            playerform = 0
+        elif playerform > 5:
+            playerform = 5
+
+        playerbonus = dict_form[playerform]
+
+        return playerbonus
+
+
     ### Away team stats = opponent, if errors : match vs bot team
     try:
         t_vs_info = await view_team(vs)
         p_vs_info = await view_players(vs)
         team_name_away = t_vs_info.split(",")[0]
+        team_form_away = t_vs_info.split(",")[3]
         away_man = p_vs_info[0]
         away_p1 = p_vs_info[1]
+        away_p1_form = player_form(team_form_away)
+        away_p1_ovr = int(away_p1.split(',')[1]) + away_p1_form
+
         away_p2 = p_vs_info[2]
+        away_p2_form = player_form(team_form_away)
+        away_p2_ovr = int(away_p2.split(',')[1]) + away_p2_form
+
         away_p3 = p_vs_info[3]
+        away_p3_form = player_form(team_form_away)
+        away_p3_ovr = int(away_p3.split(',')[1]) + away_p3_form
+
         away_p4 = p_vs_info[4]
+        away_p4_form = player_form(team_form_away)
+        away_p4_ovr = int(away_p4.split(',')[1]) + away_p4_form
+
         away_p5 = p_vs_info[5]
+        away_p5_form = player_form(team_form_away)
+        away_p5_ovr = int(away_p5.split(',')[1]) + away_p5_form
+
         away_p6 = p_vs_info[6]
+        away_p6_form = player_form(team_form_away)
+        away_p6_ovr = int(away_p6.split(',')[1]) + away_p6_form
+
         away_p7 = p_vs_info[7]
+        away_p7_form = player_form(team_form_away)
+        away_p7_ovr = int(away_p7.split(',')[1]) + away_p7_form
+
         away_p8 = p_vs_info[8]
+        away_p8_form = player_form(team_form_away)
+        away_p8_ovr = int(away_p8.split(',')[1]) + away_p8_form
+
         away_p9 = p_vs_info[9]
+        away_p9_form = player_form(team_form_away)
+        away_p9_ovr = int(away_p9.split(',')[1]) + away_p9_form
+
         away_p10 = p_vs_info[10]
+        away_p10_form = player_form(team_form_away)
+        away_p10_ovr = int(away_p10.split(',')[1]) + away_p10_form
+
         away_p11 = p_vs_info[11]
-        away_ovr = (int(away_p1.split(',')[1]) + int(away_p2.split(',')[1]) + int(away_p3.split(',')[1]) + int(
-            away_p4.split(',')[1]) + int(away_p5.split(',')[1]) + int(away_p6.split(',')[1]) + int(
-            away_p7.split(',')[1]) + int(away_p8.split(',')[1]) + int(away_p9.split(',')[1]) + int(
-            away_p10.split(',')[1]) + int(away_p11.split(',')[1])) / 11
+        away_p11_form = player_form(team_form_away)
+        away_p11_ovr = int(away_p11.split(',')[1]) + away_p11_form
+
+        away_ovr = round((away_p1_ovr + away_p2_ovr + away_p3_ovr + away_p4_ovr + away_p5_ovr + away_p6_ovr + away_p7_ovr +
+                    away_p8_ovr + away_p9_ovr + away_p10_ovr + away_p11_ovr) / 11)
 
     except:
         team_name_away = "MFL Team"
@@ -240,6 +302,7 @@ async def simulate(id, vs):
 
     ### Home team stats
     team_name_home = t_info.split(",")[0]
+    team_form_home = t_info.split(",")[3]
     home_man = p_info[0]
     home_p1 = p_info[1]
     home_p2 = p_info[2]
@@ -252,10 +315,41 @@ async def simulate(id, vs):
     home_p9 = p_info[9]
     home_p10 = p_info[10]
     home_p11 = p_info[11]
-    home_ovr = (int(home_p1.split(',')[1]) + int(home_p2.split(',')[1]) + int(home_p3.split(',')[1]) + int(
-        home_p4.split(',')[1]) + int(home_p5.split(',')[1]) + int(home_p6.split(',')[1]) + int(
-        home_p7.split(',')[1]) + int(home_p8.split(',')[1]) + int(home_p9.split(',')[1]) + int(
-        home_p10.split(',')[1]) + int(home_p11.split(',')[1])) / 11
+    home_p1_form = player_form(team_form_home)
+    home_p1_ovr = int(home_p1.split(',')[1]) + home_p1_form
+
+    home_p2_form = player_form(team_form_home)
+    home_p2_ovr = int(home_p2.split(',')[1]) + home_p2_form
+
+    home_p3_form = player_form(team_form_home)
+    home_p3_ovr = int(home_p3.split(',')[1]) + home_p3_form
+
+    home_p4_form = player_form(team_form_home)
+    home_p4_ovr = int(home_p4.split(',')[1]) + home_p4_form
+
+    home_p5_form = player_form(team_form_home)
+    home_p5_ovr = int(home_p5.split(',')[1]) + home_p5_form
+
+    home_p6_form = player_form(team_form_home)
+    home_p6_ovr = int(home_p6.split(',')[1]) + home_p6_form
+
+    home_p7_form = player_form(team_form_home)
+    home_p7_ovr = int(home_p7.split(',')[1]) + home_p7_form
+
+    home_p8_form = player_form(team_form_home)
+    home_p8_ovr = int(home_p8.split(',')[1]) + home_p8_form
+
+    home_p9_form = player_form(team_form_home)
+    home_p9_ovr = int(home_p9.split(',')[1]) + home_p9_form
+
+    home_p10_form = player_form(team_form_home)
+    home_p10_ovr = int(home_p10.split(',')[1]) + home_p10_form
+
+    home_p11_form = player_form(team_form_home)
+    home_p11_ovr = int(home_p11.split(',')[1]) + home_p11_form
+
+    home_ovr = round((home_p1_ovr + home_p2_ovr + home_p3_ovr + home_p4_ovr + home_p5_ovr + home_p6_ovr + home_p7_ovr +
+                home_p8_ovr + home_p9_ovr + home_p10_ovr + home_p11_ovr) / 11)
 
     ### Matchs initialisation
     home_info = []
@@ -926,8 +1020,6 @@ async def view_nfts(id, indice):
         else:
             rarity = "common"
 
-
-        #print(nationality +"," + positions +"," + str(ovr) + "," +displayName)
         embeddescription = embeddescription + ":flag_" + nation + ":`" + positions + "  " + str(ovr) + "`" + rarity + " *" + displayName + "*\n"
         playerslist.append(nation+","+positions+","+str(ovr)+","+displayName+","+rarity)
 
@@ -943,9 +1035,6 @@ async def view_nfts(id, indice):
         indice = len(embeddesclist) - 1
     elif int(indice) < 0:
         indice = 0
-    print(indice)
-
-    #embednfts.add_field(name="Players", value=embeddesclist[int(indice)])
 
     return formatlist
 
@@ -975,13 +1064,13 @@ async def create(ctx, name):
             if user_id in tfile.read():
                 if user_id == adminid:
                     team_id = str(randint(1, 999999))
-                    tfile.write(teamname + "," + team_id + ",no,\n")
+                    tfile.write(teamname + "," + team_id + ",no,3,\n")
                     await create_player(team_id, username)
                     await ctx.send("Team " + teamname + " created !")
                 else:
                     await ctx.send("Sorry, you already have a team !")
             else:
-                tfile.write(teamname + "," + team_id + ",yes,\n")
+                tfile.write(teamname + "," + team_id + ",yes,3,\n")
                 await create_player(team_id, username)
                 await ctx.send("Team " + teamname + " created !")
 
@@ -1141,8 +1230,7 @@ async def game(ctx):
                         ovr = x.split(",")[2]
                         displayName = x.split(",")[3]
                         rarity = x.split(",")[4]
-                        print(ovr)
-                        print(rarity)
+
                         if rarity == "common":
                             rarity_flag = "⚪"
                         elif rarity == "uncommon":
@@ -1192,7 +1280,6 @@ async def game(ctx):
                             ovr = player.split(",")[2]
                             name = player.split(",")[3]
                             rarity = player.split(",")[4]
-                            print(rarity)
                             embedscout = await scoutnft(user_id, name, ovr, pos, nat, rarity)
                             await showmenu.edit(view=viewscout, embed=embedscout)
                             await interaction.response.defer(ephemeral=True)
@@ -1215,7 +1302,6 @@ async def game(ctx):
 
                 async def button_move_callback(interaction):
                     global indice
-                    print(indice)
                     if str(interaction.user) == user_name:
                         page = interaction.data['custom_id']
                         if page == "next":
@@ -1236,7 +1322,7 @@ async def game(ctx):
                 embednfts, viewnfts = await nftembed(playerslist, indice)
 
                 await showmenu.edit(view=viewnfts, embed=embednfts)
-                await interaction.response.defer(ephemeral=False)
+                await interaction.response.defer(ephemeral=True)
 
         async def button_scout_callback(interaction):
             if str(interaction.user) == user_name:
