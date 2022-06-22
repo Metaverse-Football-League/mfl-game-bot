@@ -960,4 +960,6 @@ async def game(ctx):
 
 
 #### BOT TOKEN ########################
-bot.run("OTgxNTI0NDI1NjIxMDA4NDE1.GCnt7d.0fY5touBIf9HOqtMJlHprQOZXIRYudbLFaubIY")
+with open('token.txt', 'r') as f:
+        token = f.readline()
+bot.run(token)
