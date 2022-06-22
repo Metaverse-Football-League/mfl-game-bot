@@ -8,28 +8,38 @@ import asyncpg
 from random import randint, random, sample, choice
 import requests
 
-load_dotenv(dotenv_path="config")
+### Prerequisites
+# Discord2 Python library (py-cord)
+# asyncio library
+# names library to generate random names
 
-intents = discord.Intents.all()
-
-bot = commands.Bot(command_prefix="!", intents=intents)
-
-#### Files
-## Players
-# DisplayName, OVR, Position, Owner
+### Files
+## Players (DisplayName, OVR, Position, Owner, nationality)
 f_players = "players.csv"
 ## Teams
-# Name, user_id, deleted
+# Name, user_id, boolean(0 : bot, 1 : player)
 f_teams = "teams.csv"
+## Goal scorers (number, name, team)
 f_goals = "goals.csv"
+## Event (name, desc, status)
+f_events = "events.csv"
+
+load_dotenv(dotenv_path="config")
+intents = discord.Intents.all()
+
+### Set prefix
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 ########################################################################################################
 ## START OF PROCESS ##
 ########################################################################################################
 
+
 async def create_player(id, manager):
     with open(f_players, "a") as pfile:
         i = 1
+
+        # ID > 100000 -> team created by a Discord user
         if int(id) > 1000000:
             manager = manager
             m_ovr = 50
@@ -39,12 +49,17 @@ async def create_player(id, manager):
 
         m_pos = "COACH"
         m_owner = id
-        pfile.write(manager + "," + str(m_ovr) + "," + m_pos + "," + str(m_owner) + ",\n")
+        nationalities = ["gb", "us", "au", "fr", "ca", "es", "cu", "mx"]
+        nat = choice(nationalities)
+        pfile.write(manager + "," + str(m_ovr) + "," + m_pos + "," + str(m_owner) + "," + nat + "\n")
         while i <= 11:
+            # To create better bot teams than players teams
             if int(id) < 1000000:
                 ovr = randint(65, 82)
             else:
-                ovr = randint(55, 65)
+                # Value for players generate by Discord User creation team (Issue #2)
+                ovr = randint(25, 40)
+
             displayName = names.get_full_name(gender='male')
             if i == 1:
                 position = "gk"
@@ -80,13 +95,13 @@ async def generate_player(i):
     nat = choice(nationalities)
 
     if rare <= 70:
-        ovr = randint(60, 70)
+        ovr = randint(27, 32)
     elif 89 >= rare > 69:
-        ovr = randint(70, 80)
+        ovr = randint(33, 37)
     elif 97 >= rare > 89:
-        ovr = randint(80, 90)
+        ovr = randint(38, 41)
     elif rare > 97:
-        ovr = randint(90, 99)
+        ovr = randint(42, 45)
 
     if i == 1:
         position = "gk"
@@ -112,58 +127,12 @@ async def generate_player(i):
         position = "st"
 
     owner = id
-    new_line = displayName + "," + str(ovr) + "," + position + "," + str(owner) + ","+nat+",\n"
+    new_line = displayName + "," + str(ovr) + "," + position + "," + str(owner) + "," + nat + ",\n"
     return new_line
 
 
-async def replace_player(id, num):
-    pfile = open(f_players, "r+")
-    i = num
-    c = 0
-    playerfile = pfile.readlines()
-    playerlist = []
-    for line in playerfile:
-        if id in line:
-            c += 1
-            if c == i:
-                displayName = names.get_full_name(gender='male')
-                ovr = randint(55, 65)
-                if i == 1:
-                    position = "gk"
-                elif i == 2:
-                    position = "lb"
-                elif i == 3:
-                    position = "cb"
-                elif i == 4:
-                    position = "cb"
-                elif i == 5:
-                    position = "rb"
-                elif i == 6:
-                    position = "cm"
-                elif i == 7:
-                    position = "cm"
-                elif i == 8:
-                    position = "am"
-                elif i == 9:
-                    position = "lw"
-                elif i == 10:
-                    position = "rw"
-                elif i == 11:
-                    position = "st"
-                owner = id
-                new_line = displayName + "," + str(ovr) + "," + position + "," + str(owner) + ",\n"
-                replace = line.replace(line, new_line)
-                line = replace
-                if "," not in line:
-                    line = ",,,,\n"
-        playerlist.append(line)
-    pfile.truncate(0)
-    pfile.writelines(playerlist)
-    pfile.close()
-
-
 async def scout_player(id, num, name, ovr, pos, nat):
-    #nationalities = ["gb", "us", "au", "fr", "ca", "es", "cu", "mx"]
+    # nationalities = ["gb", "us", "au", "fr", "ca", "es", "cu", "mx"]
     nat = nat
     pfile = open(f_players, "r+")
     c = 0
@@ -179,15 +148,15 @@ async def scout_player(id, num, name, ovr, pos, nat):
                     ovr = ovr
                     position = pos
                     owner = id
-                    new_line = displayName + "," + str(ovr) + "," + position + "," + str(owner) + ","+nat+",\n"
+                    new_line = displayName + "," + str(ovr) + "," + position + "," + str(owner) + "," + nat + ",\n"
                     replace = line.replace(line, new_line)
                     line = replace
                     if "," not in line:
                         line = ",,,,\n"
-
         except:
             continue
         playerlist.append(line)
+    # Replace entry in player file
     pfile.seek(0)
     pfile.truncate(0)
     pfile.writelines(playerlist)
@@ -195,6 +164,7 @@ async def scout_player(id, num, name, ovr, pos, nat):
 
 
 async def view_team(id):
+    # Find team which owned by called player
     with open(f_teams, "r") as tfile:
         teamfile = tfile.readlines()
 
@@ -215,11 +185,13 @@ async def view_players(id):
                 playerlist.append(line)
         return playerlist
 
-async def simulate2(id, vs):
+
+async def simulate(id, vs):
+    # Find player's team information
     t_info = await view_team(id)
     p_info = await view_players(id)
 
-    ### Away team stats
+    ### Away team stats = opponent, if errors : match vs bot team
     try:
         t_vs_info = await view_team(vs)
         p_vs_info = await view_players(vs)
@@ -268,6 +240,9 @@ async def simulate2(id, vs):
     home_info = []
     away_info = []
     commentary = []
+    score_home = 0
+    score_away = 0
+    minutes = randint(92, 96)
 
     home_bonus = round(home_ovr - away_ovr)
     away_bonus = round(away_ovr - home_ovr)
@@ -287,13 +262,12 @@ async def simulate2(id, vs):
 
     if bonus == 0:
         bonus = 1
-    ratio = round(50 + 2*home_bonus)
 
+    ## Give a balance between the 2 teams (if same OVR : 1-50 and 51-100 to find who makes the action)
+    ratio = round(50 + 2 * home_bonus)
+
+    # % per minute to have an action, in fact it will be nb_actions / minutes
     nb_actions = 4 * note + randint(1, bonus)
-
-    score_home = 0
-    score_away = 0
-    minutes = randint(92, 96)
 
     i = 0
 
@@ -301,9 +275,101 @@ async def simulate2(id, vs):
     matchevents = []
     home_scorers = []
     away_scorers = []
+
     home_scorers.append("\u200b")
     away_scorers.append("\u200b")
     commentary.append("The match begins !")
+
+    def whoscore(team):
+        ## Define scoring probabilities
+        what = randint(1, 20)
+        if what > 17:
+            what = "Goal"
+        else:
+            what = "No Goal"
+
+        whonumber = randint(1, 100)
+        if team == "home":
+            if whonumber < 1:
+                who = home_p1
+            elif 1 < whonumber < 7:
+                who = home_p2
+            elif 7 < whonumber < 15:
+                who = home_p3
+            elif 15 < whonumber < 23:
+                who = home_p4
+            elif 23 < whonumber < 29:
+                who = home_p5
+            elif 29 < whonumber < 36:
+                who = home_p6
+            elif 36 < whonumber < 43:
+                who = home_p7
+            elif 43 < whonumber < 55:
+                who = home_p8
+            elif 55 < whonumber < 68:
+                who = home_p9
+            elif 68 < whonumber < 81:
+                who = home_p10
+            else:
+                who = home_p11
+        if team == "away":
+            if whonumber < 1:
+                who = away_p1
+            elif 1 < whonumber < 7:
+                who = away_p2
+            elif 7 < whonumber < 15:
+                who = away_p3
+            elif 15 < whonumber < 23:
+                who = away_p4
+            elif 23 < whonumber < 29:
+                who = away_p5
+            elif 29 < whonumber < 36:
+                who = away_p6
+            elif 36 < whonumber < 43:
+                who = away_p7
+            elif 43 < whonumber < 55:
+                who = away_p8
+            elif 55 < whonumber < 68:
+                who = away_p9
+            elif 68 < whonumber < 81:
+                who = away_p10
+            else:
+                who = away_p11
+
+        return who.split(",")[0], what, team
+
+    def register_goals(player, team):
+        # Update f_goals
+        pfile = open(f_goals, "r+")
+        playerfile = pfile.readlines()
+        playerlist = []
+        status = 0
+
+        for line in playerfile:
+
+            fplayer = line.split(",")[1]
+            fteam = line.split(",")[2]
+
+            if (fplayer == player) and (fteam == team):
+                fgoals = int(line.split(",")[0])
+                newgoals = fgoals + 1
+                new_line = str(newgoals) + "," + player + "," + team + ",\n"
+                replace = line.replace(line, new_line)
+                line = replace
+                if "," not in line:
+                    line = ",,,,\n"
+                status = 1
+
+            playerlist.append(line)
+
+        if status == 0:
+            newgoals = 1
+            pfile.write(str(newgoals) + "," + player + "," + team + ",\n")
+        else:
+            pfile.seek(0)
+            pfile.truncate(0)
+            pfile.writelines(playerlist)
+        pfile.close()
 
     while i < minutes:
         i += 1
@@ -311,100 +377,9 @@ async def simulate2(id, vs):
         hvalue = home_scorers[i - 1]
         avalue = away_scorers[i - 1]
 
-        def whoscore(team):
-            what = randint(1,20)
-            if what > 17:
-                what = "Goal"
-            else:
-                what = "No Goal"
-
-            whonumber = randint(1, 100)
-            if team == "home":
-                if whonumber < 1:
-                    who = home_p1
-                elif 1 < whonumber < 7:
-                    who = home_p2
-                elif 7 < whonumber < 15:
-                    who = home_p3
-                elif 15 < whonumber < 23:
-                    who = home_p4
-                elif 23 < whonumber < 29:
-                    who = home_p5
-                elif 29 < whonumber < 36:
-                    who = home_p6
-                elif 36 < whonumber < 43:
-                    who = home_p7
-                elif 43 < whonumber < 55:
-                    who = home_p8
-                elif 55 < whonumber < 68:
-                    who = home_p9
-                elif 68 < whonumber < 81:
-                    who = home_p10
-                else:
-                    who = home_p11
-            if team == "away":
-                if whonumber < 1:
-                    who = away_p1
-                elif 1 < whonumber < 7:
-                    who = away_p2
-                elif 7 < whonumber < 15:
-                    who = away_p3
-                elif 15 < whonumber < 23:
-                    who = away_p4
-                elif 23 < whonumber < 29:
-                    who = away_p5
-                elif 29 < whonumber < 36:
-                    who = away_p6
-                elif 36 < whonumber < 43:
-                    who = away_p7
-                elif 43 < whonumber < 55:
-                    who = away_p8
-                elif 55 < whonumber < 68:
-                    who = away_p9
-                elif 68 < whonumber < 81:
-                    who = away_p10
-                else:
-                    who = away_p11
-
-            return who.split(",")[0], what, team
-
-        def register_goals(player, team):
-            pfile = open("goals.csv", "r+")
-            playerfile = pfile.readlines()
-            playerlist = []
-            status = 0
-
-            for line in playerfile:
-
-                fplayer = line.split(",")[1]
-                fteam = line.split(",")[2]
-
-                if (fplayer == player) and (fteam == team):
-                    print(fplayer + " : " + player)
-                    fgoals = int(line.split(",")[0])
-                    newgoals = fgoals + 1
-                    print(newgoals)
-                    new_line = str(newgoals)+","+player + "," + team + ",\n"
-                    replace = line.replace(line, new_line)
-                    line = replace
-                    if "," not in line:
-                        line = ",,,,\n"
-                    status = 1
-
-                playerlist.append(line)
-
-            if status == 0:
-                newgoals = 1
-                pfile.write(str(newgoals) + "," + player + "," + team + ",\n")
-            else:
-                pfile.seek(0)
-                pfile.truncate(0)
-                pfile.writelines(playerlist)
-            pfile.close()
-
         ### Déclenchement actions
         if x < nb_actions:
-            who_attack = randint(1,100)
+            who_attack = randint(1, 100)
             if who_attack > ratio:
                 who, what, team = whoscore("away")
             else:
@@ -415,12 +390,12 @@ async def simulate2(id, vs):
                 if team == "home":
                     score_home += 1
                     hvalue = hvalue + "," + who
-                    commentary.append("What a goal for " +team_name_home+" by "+who)
+                    commentary.append("What a goal for " + team_name_home + " by " + who)
                     register_goals(who, team_name_home)
                 else:
                     score_away += 1
                     avalue = avalue + "," + who
-                    commentary.append("What a goal for " +team_name_away+" by "+who)
+                    commentary.append("What a goal for " + team_name_away + " by " + who)
                     register_goals(who, team_name_away)
 
             else:
@@ -458,48 +433,15 @@ async def simulate2(id, vs):
     ### Commentary review
     if commentary[minutes] == "---":
         if score_home > score_away:
-            commentary[minutes] = "At home, **"+team_name_home+"** wins the game against "+team_name_away+"."
+            commentary[minutes] = "At home, **" + team_name_home + "** wins the game against " + team_name_away + "."
         elif score_home < score_away:
-            commentary[minutes] = "**"+team_name_away+"** makes a great match and overcomes "+team_name_home+"."
+            commentary[minutes] = "**" + team_name_away + "** makes a great match and overcomes " + team_name_home + "."
         else:
-            commentary[minutes] = "What a game !\n But "+team_name_home+" and "+team_name_away+" "+"could not tell the difference"
+            commentary[
+                minutes] = "What a game !\n But " + team_name_home + " and " + team_name_away + " " + "could not tell the difference"
     matchinfo.append(commentary)
 
     return matchinfo, matchevents, home_scorers, away_scorers
-
-
-#### BOT IS READY ####
-@bot.event
-async def on_ready():
-    print("Bot Ready")
-
-
-#### CREATE TEAM ####
-@bot.command(name='create')
-async def create(ctx, name):
-    if ctx.channel.id == 983723647002882058:
-        teamname = name
-        with open(f_teams, "r+") as tfile:
-            user_id = str(ctx.message.author.id)
-            if int(user_id) > 1000000:
-                user = bot.get_user(int(user_id))
-                username = user.name
-            else:
-                username = "BOT"
-            team_id = user_id
-            if user_id in tfile.read():
-                if user_id == "593086239024873483":
-                    team_id = str(randint(1, 999999))
-                    tfile.write(teamname + "," + team_id + ",no,\n")
-                    await create_player(team_id, username)
-                    await ctx.send("Team " + teamname + " created !")
-                else:
-                    await ctx.send("Sorry, you already have a team !")
-            else:
-                tfile.write(teamname + "," + team_id + ",no,\n")
-                await create_player(team_id, username)
-                await ctx.send("Team " + teamname + " created !")
-
 
 async def viewteam(id):
     user_id = str(id)
@@ -510,8 +452,6 @@ async def viewteam(id):
     else:
         p_info = await view_players(user_id)
         team_name = t_info.split(",")[0]
-
-        # embedbattle.set_thumbnail(url="https://i.ibb.co/Wk063wT/fight.png")
 
         i = 0
         default_color = 0x00ff00
@@ -529,7 +469,7 @@ async def viewteam(id):
             ovr = p_info[i].split(",")[1]
             pos = p_info[i].split(",")[2].upper()
             nat = p_info[i].split(",")[4]
-            embeddescription = embeddescription + ":flag_"+nat+":`" + pos + "  " + ovr + "` *" + name + "*\n"
+            embeddescription = embeddescription + ":flag_" + nat + ":`" + pos + "  " + ovr + "` *" + name + "*\n"
             i += 1
 
         man_name = p_info[0].split(",")[0]
@@ -538,6 +478,7 @@ async def viewteam(id):
         embedteam.add_field(name="Coach", value=embedmanager, inline=False)
 
         return embedteam
+
 
 async def viewleads(id):
     with open(f_goals, "r") as tgoals:
@@ -555,9 +496,9 @@ async def viewleads(id):
                 team = goal.split(",")[2]
                 number = goal.split(",")[0]
                 goallist.append(goal)
-                embedname = embedname + name+"\n"
-                embedteam = embedteam + team+"\n"
-                embedscore = embedscore + str(number)+"\n"
+                embedname = embedname + name + "\n"
+                embedteam = embedteam + team + "\n"
+                embedscore = embedscore + str(number) + "\n"
                 indice += 1
 
         if embedname == "":
@@ -566,7 +507,7 @@ async def viewleads(id):
             embedscore = "\u200b"
         if embedteam == "":
             embedteam = "\u200b"
-            
+
         default_color = 0x00ff00
         embedlead = discord.Embed(
             title="Leaderboards", description="Best players", color=default_color)
@@ -576,8 +517,9 @@ async def viewleads(id):
 
         return embedlead
 
+
 async def viewevents(id):
-    with open("events.csv", "r") as tevents:
+    with open(f_events, "r") as tevents:
         eventfile = tevents.readlines()
         default_color = 0x00ff00
         embedevent = discord.Embed(
@@ -594,6 +536,7 @@ async def viewevents(id):
             embedevent.add_field(name=eventname, value=eventdesc)
 
         return embedevent
+
 
 async def findteam(id):
     with open(f_teams, "r") as tfile:
@@ -629,32 +572,6 @@ async def findteam(id):
         embedteam.add_field(name="Opponents", value=embedopponents)
 
         return embedteam, teamlist
-
-
-@bot.command(name='view')
-async def change(ctx, user: discord.User):
-    if ctx.channel.id == 983723647002882058:
-        embedteam = await viewteam(str(user.id))
-        await ctx.send(embed=embedteam)
-
-
-@bot.command(name='change')
-async def change(ctx, number):
-    if ctx.channel.id == 983723647002882058:
-        user_id = str(ctx.message.author.id)
-        await replace_player(user_id, int(number))
-
-        p_info = await view_players(user_id)
-
-        i = int(number) - 1
-        default_color = 0xffff00
-        embedteam = discord.Embed(
-            title=p_info[i].split(",")[0], color=default_color)
-        embedteam.add_field(name="NUM", value=i + 1, inline=True)
-        embedteam.add_field(name="GEN", value=p_info[i].split(",")[1], inline=True)
-        embedteam.add_field(name="POS", value=p_info[i].split(",")[2].upper(), inline=True)
-        await ctx.send(embed=embedteam)
-
 
 async def scout(id):
     user_id = str(id)
@@ -717,8 +634,8 @@ async def scout(id):
 
     embedplayer = discord.Embed(
         title=name, description="You find a new player !", color=default_color)
-    embeddescription = ":flag_"+nat+":`" + str(i) + " - " + pos + " " + ovr + "` *" + name + "*\n"
-    oldplayer = ":flag_"+old_nat+":`" + str(i) + " - " + old_pos + " " + old_ovr + "` ~~" + old_name + "~~\n"
+    embeddescription = ":flag_" + nat + ":`" + str(i) + " - " + pos + " " + ovr + "` *" + name + "*\n"
+    oldplayer = ":flag_" + old_nat + ":`" + str(i) + " - " + old_pos + " " + old_ovr + "` ~~" + old_name + "~~\n"
 
     embedplayer.add_field(name="New player", value=embeddescription)
     embedplayer.add_field(name="Player you will remove", value=oldplayer, inline=False)
@@ -729,16 +646,16 @@ async def scout(id):
 #### SIMULATE MATCHES ####
 async def play(id, vs):
     user_id = str(id)
-    matchinfos, matchsevents, home_scorers, away_scorers = await simulate2(user_id, vs)
+    matchinfos, matchsevents, home_scorers, away_scorers = await simulate(user_id, vs)
     home_info = matchinfos[0]
     away_info = matchinfos[1]
     home_name = home_info[0]
     away_name = away_info[0]
     commentary = matchinfos[4]
 
-    description_start = "Welcome to the match !\nToday, "+home_name+" will face "+away_name+".\n\nThe teams enter the " \
-                                                                                      "field... let's go! "
-    description_default = "Welcome to the match !\nToday, "+home_name+" will face "+away_name+".\n"
+    description_start = "Welcome to the match !\nToday, " + home_name + " will face " + away_name + ".\n\nThe teams enter the " \
+                                                                                                    "field... let's go! "
+    description_default = "Welcome to the match !\nToday, " + home_name + " will face " + away_name + ".\n"
 
     note = matchinfos[3]
     if note == 1:
@@ -800,11 +717,54 @@ async def play(id, vs):
         embedlist.append(embedscore)
     return embedlist
 
+#### BOT IS READY ####
+@bot.event
+async def on_ready():
+    print("Bot Ready")
+
+### Discord configurations ###
+gamechan = 983723647002882058
+adminid = "593086239024873483"
+
+#### CREATE TEAM ####
+@bot.command(name='create')
+async def create(ctx, name):
+    # Usage : !create Team_Name
+    if ctx.channel.id == gamechan:
+        teamname = name
+        with open(f_teams, "r+") as tfile:
+            user_id = str(ctx.message.author.id)
+            if int(user_id) > 1000000:
+                user = bot.get_user(int(user_id))
+                username = user.name
+            else:
+                username = "BOT"
+            team_id = user_id
+            if user_id in tfile.read():
+                if user_id == adminid:
+                    team_id = str(randint(1, 999999))
+                    tfile.write(teamname + "," + team_id + ",no,\n")
+                    await create_player(team_id, username)
+                    await ctx.send("Team " + teamname + " created !")
+                else:
+                    await ctx.send("Sorry, you already have a team !")
+            else:
+                tfile.write(teamname + "," + team_id + ",no,\n")
+                await create_player(team_id, username)
+                await ctx.send("Team " + teamname + " created !")
+
+
+@bot.command(name='view')
+async def change(ctx, user: discord.User):
+    if ctx.channel.id == gamechan:
+        embedteam = await viewteam(str(user.id))
+        await ctx.send(embed=embedteam)
+
 
 #### Menu display
 @bot.command(name='game')
 async def game(ctx):
-    if ctx.channel.id == 983723647002882058:
+    if ctx.channel.id == gamechan:
         user_id = str(ctx.message.author.id)
         user_name = str(ctx.message.author)
         default_color = 0x00ff00
@@ -818,7 +778,8 @@ async def game(ctx):
         button_recruit = Button(label="Recruit", style=discord.ButtonStyle.green, custom_id="recruit", emoji="✅")
         button_letleave = Button(label="Return", style=discord.ButtonStyle.grey, custom_id="letleave", emoji="❌")
         button_finishmatch = Button(label="Skip", style=discord.ButtonStyle.blurple, custom_id="finishmatch")
-        button_leaderboard = Button(label="Leaderboard", style=discord.ButtonStyle.grey, row=1, custom_id="leaderboard", emoji="🏆")
+        button_leaderboard = Button(label="Leaderboard", style=discord.ButtonStyle.grey, row=1, custom_id="leaderboard",
+                                    emoji="🏆")
         button_events = Button(label="Events", style=discord.ButtonStyle.blurple, row=1, custom_id="events", emoji="⭐")
 
         view = View()
@@ -928,7 +889,7 @@ async def game(ctx):
             if str(interaction.user) == user_name:
                 playerscheck = interaction.message.embeds[0].fields
                 playersinfos = playerscheck[0].value.split(" ")
-                nat = playersinfos[0].split("`")[0].split("_")[1].replace(":","")
+                nat = playersinfos[0].split("`")[0].split("_")[1].replace(":", "")
                 num = playersinfos[0].split("`")[1]
 
                 pos = playersinfos[2]
@@ -961,5 +922,5 @@ async def game(ctx):
 
 #### BOT TOKEN ########################
 with open('token.txt', 'r') as f:
-        token = f.readline()
+    token = f.readline()
 bot.run(token)
