@@ -7,6 +7,7 @@ import names
 import asyncpg
 from random import randint, random, sample, choice
 import requests
+import json
 
 ### Prerequisites
 # Discord2 Python library (py-cord)
@@ -642,6 +643,91 @@ async def scout(id):
 
     return embedplayer
 
+async def scoutnft(id, name, ovr, pos, nat):
+    user_id = str(id)
+    p_info = await view_players(user_id)
+
+    positions = {
+        'GK': 1,
+        'LB': 2,
+        'CB': 3,
+        'RB': 5,
+        'CDM': 6,
+        'CM': 6,
+        'CAM': 8,
+        'AM': 8,
+        'LW': 9,
+        'LM': 9,
+        'RW': 10,
+        'RM': 10,
+        'CF': 11,
+        'ST': 11,
+        'FW': 11
+    }
+
+    name = name
+    ovr = ovr
+    pos = pos
+    number = positions[pos]
+    nat = nat
+
+    ## Case of similar posts
+
+    if number in (3, 4):
+        ovr3 = p_info[3].split(",")[1]
+        ovr4 = p_info[4].split(",")[1]
+        if ovr3 < ovr4:
+            old_name = p_info[3].split(",")[0]
+            old_ovr = p_info[3].split(",")[1]
+            old_pos = p_info[3].split(",")[2].upper()
+            old_nat = p_info[3].split(",")[4]
+            number = 3
+        else:
+            old_name = p_info[4].split(",")[0]
+            old_ovr = p_info[4].split(",")[1]
+            old_pos = p_info[4].split(",")[2].upper()
+            old_nat = p_info[4].split(",")[4]
+            number = 4
+    elif number in (6, 7):
+        ovr6 = p_info[6].split(",")[1]
+        ovr7 = p_info[7].split(",")[1]
+        if ovr6 < ovr7:
+            old_name = p_info[6].split(",")[0]
+            old_ovr = p_info[6].split(",")[1]
+            old_pos = p_info[6].split(",")[2].upper()
+            old_nat = p_info[6].split(",")[4]
+            number = 6
+        else:
+            old_name = p_info[7].split(",")[0]
+            old_ovr = p_info[7].split(",")[1]
+            old_pos = p_info[7].split(",")[2].upper()
+            old_nat = p_info[7].split(",")[4]
+            number = 7
+    else:
+        old_name = p_info[number].split(",")[0]
+        old_ovr = p_info[number].split(",")[1]
+        old_pos = p_info[number].split(",")[2].upper()
+        old_nat = p_info[number].split(",")[4]
+
+    playerinfo = []
+    playerinfo.append(number)
+    playerinfo.append(name)
+    playerinfo.append(ovr)
+    playerinfo.append(pos)
+    playerinfo.append(nat)
+
+    i = int(number)
+    default_color = 0xffff00
+
+    embedplayer = discord.Embed(
+        title=name, description="You find a new player !", color=default_color)
+    embeddescription = ":flag_" + nat + ":`" + str(i) + " - " + pos + " " + ovr + "` *" + name + "*\n"
+    oldplayer = ":flag_" + old_nat + ":`" + str(i) + " - " + old_pos + " " + old_ovr + "` ~~" + old_name + "~~\n"
+
+    embedplayer.add_field(name="New player", value=embeddescription)
+    embedplayer.add_field(name="Player you will remove", value=oldplayer, inline=False)
+
+    return embedplayer
 
 #### SIMULATE MATCHES ####
 async def play(id, vs):
@@ -717,6 +803,82 @@ async def play(id, vs):
         embedlist.append(embedscore)
     return embedlist
 
+#### Show NFT players
+async def view_nfts(id, indice):
+
+    nations_prefix = {
+        'ARGENTINA': 'ar',
+        'AUSTRIA': 'at',
+        'BELGIUM': 'be',
+        'BRAZIL': 'br',
+        'CAMEROON': 'cm',
+        'CROATIA': 'hr',
+        'CZECH_REPUBLIC': 'cz',
+        'ENGLAND': 'gb',
+        'FRANCE': 'fr',
+        'GERMANY': 'de',
+        'JAPAN': 'jp',
+        'MEXICO': 'mx',
+        'NETHERLANDS': 'nl',
+        'NORWAY': 'no',
+        'PARAGUAY': 'py',
+        'UKRAINE': 'ua',
+        'ROMANIA': 'ro',
+        'SAUDI_ARABIA': 'sa',
+        'SERBIA': 'rs',
+        'SLOVAKIA': 'sk',
+        'SPAIN': 'es',
+        'SWITZERLAND': 'ch',
+        'SWEDEN': 'se'
+
+    }
+
+    host = "https://z519wdyajg.execute-api.us-east-1.amazonaws.com/prod/users/discord/"
+    user_id = str(id)
+    link = host+user_id+"/players"
+    getnft = requests.get(link)
+    nfts = getnft.json()
+
+    i = 0
+
+    playerslist = []
+    formatlist = []
+    embeddesclist = []
+    embeddescription = ""
+
+    while i < len(nfts):
+        nationality = nfts[i]['metadata']['nationalities'][0]
+        try:
+            nation = nations_prefix[nationality]
+        except:
+            nation = nationality
+        positions = nfts[i]['metadata']['positions'][0]
+        ovr = nfts[i]['metadata']['overall']
+        firstName = nfts[i]['metadata']['firstName']
+        lastName = nfts[i]['metadata']['lastName']
+        displayName = firstName + " " + lastName
+        #print(nationality +"," + positions +"," + str(ovr) + "," +displayName)
+        embeddescription = embeddescription + ":flag_" + nation + ":`" + positions + "  " + str(ovr) + "` *" + displayName + "*\n"
+        playerslist.append(nation+","+positions+","+str(ovr)+","+displayName)
+
+        i += 1
+
+        if (i % 5 == 0) or (i == len(nfts)):
+            formatlist.append(playerslist)
+            playerslist = []
+            embeddesclist.append(embeddescription)
+            embeddescription = ""
+
+    if int(indice) > len(embeddesclist):
+        indice = len(embeddesclist) - 1
+    elif int(indice) < 0:
+        indice = 0
+    print(indice)
+
+    #embednfts.add_field(name="Players", value=embeddesclist[int(indice)])
+
+    return formatlist
+
 #### BOT IS READY ####
 @bot.event
 async def on_ready():
@@ -760,7 +922,6 @@ async def change(ctx, user: discord.User):
         embedteam = await viewteam(str(user.id))
         await ctx.send(embed=embedteam)
 
-
 #### Menu display
 @bot.command(name='game')
 async def game(ctx):
@@ -774,6 +935,7 @@ async def game(ctx):
 
         button_play = Button(label="Play", style=discord.ButtonStyle.green, custom_id="play", emoji="⚽")
         button_scout = Button(label="Scout", style=discord.ButtonStyle.green, custom_id="scout", emoji="👨")
+        button_nfts = Button(label="NFT", style=discord.ButtonStyle.blurple, row=2, custom_id="nfts", emoji="🎉")
         button_team = Button(label="Team", style=discord.ButtonStyle.green, custom_id="team", emoji="👥")
         button_recruit = Button(label="Recruit", style=discord.ButtonStyle.green, custom_id="recruit", emoji="✅")
         button_letleave = Button(label="Return", style=discord.ButtonStyle.grey, custom_id="letleave", emoji="❌")
@@ -788,6 +950,7 @@ async def game(ctx):
         view.add_item(button_play)
         view.add_item(button_events)
         view.add_item(button_leaderboard)
+        view.add_item(button_nfts)
 
         viewscout = View()
         viewscout.add_item(button_team)
@@ -867,6 +1030,107 @@ async def game(ctx):
                 await showmenu.edit(view=view, embed=embedteam)
                 await interaction.response.defer(ephemeral=True)
 
+        async def button_nfts_callback(interaction):
+            if str(interaction.user) == user_name:
+                global indice
+                indice = 0
+                playerslist = await view_nfts(user_id, indice)
+
+                async def nftembed(playerslist, indice):
+                    default_color = 0xffff00
+                    embednfts = discord.Embed(
+                        title="Your NFTS", description="Below your squad", color=default_color)
+                    description = ""
+                    buttons = []
+                    i = 0
+                    for x in playerslist[indice]:
+                        nation = x.split(",")[0]
+                        positions = x.split(",")[1]
+                        ovr = x.split(",")[2]
+                        displayName = x.split(",")[3]
+                        description = description + ":flag_" + nation + ":`" + positions + "  " + str(
+                            ovr) + "` *" + displayName + "*\n"
+                        if i == 0:
+                            b1 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1, custom_id="Player "+str(i))
+                            buttons.append(b1)
+                        elif i == 1:
+                            b2 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1, custom_id="Player "+str(i))
+                            buttons.append(b2)
+                        elif i == 2:
+                            b3 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1, custom_id="Player "+str(i))
+                            buttons.append(b3)
+                        elif i == 3:
+                            b4 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1, custom_id="Player "+str(i))
+                            buttons.append(b4)
+                        elif i == 4:
+                            b5 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1, custom_id="Player "+str(i))
+                            buttons.append(b5)
+                        i += 1
+
+                    embednfts.add_field(name="Players", value=description)
+
+                    viewnfts = View()
+                    viewnfts.add_item(button_previous)
+                    viewnfts.add_item(button_next)
+                    viewnfts.add_item(button_team)
+
+                    async def button_scoutnft_callback(interaction):
+                        if str(interaction.user) == user_name:
+                            print("OK")
+                            select = int(interaction.data['custom_id'].split(" ")[1])
+                            print(select)
+                            player = playerslist[indice][select]
+                            nat = player.split(",")[0]
+                            pos = player.split(",")[1]
+                            ovr = player.split(",")[2]
+                            name = player.split(",")[3]
+                            print(player)
+                            embedscout = await scoutnft(user_id, name, ovr, pos, nat)
+                            await showmenu.edit(view=viewscout, embed=embedscout)
+                            await interaction.response.defer(ephemeral=True)
+
+                    if b1:
+                        b1.callback = button_scoutnft_callback
+                    if b2:
+                        b2.callback = button_scoutnft_callback
+                    if b3:
+                        b3.callback = button_scoutnft_callback
+                    if b4:
+                        b4.callback = button_scoutnft_callback
+                    if b5:
+                        b5.callback = button_scoutnft_callback
+
+                    for x in buttons:
+                        viewnfts.add_item(x)
+
+                    return embednfts, viewnfts
+
+                async def button_move_callback(interaction):
+                    global indice
+                    print(indice)
+                    if str(interaction.user) == user_name:
+                        page = interaction.data['custom_id']
+                        if page == "next":
+                            indice += 1
+                        elif page == "prev":
+                            indice -= 1
+
+                        embednfts, viewnfts = await nftembed(playerslist, indice)
+
+                        await showmenu.edit(view=viewnfts, embed=embednfts)
+                        await interaction.response.defer(ephemeral=True)
+
+
+                button_previous = Button(style=discord.ButtonStyle.blurple, custom_id="prev", emoji="◀")
+                button_next = Button(style=discord.ButtonStyle.blurple, custom_id="next", emoji="▶")
+                button_next.callback = button_move_callback
+                button_previous.callback = button_move_callback
+
+                embednfts, viewnfts = await nftembed(playerslist, indice)
+
+                await showmenu.edit(view=viewnfts, embed=embednfts)
+                await interaction.response.defer(ephemeral=True)
+
         async def button_scout_callback(interaction):
             if str(interaction.user) == user_name:
                 embedplayer = await scout(user_id)
@@ -915,6 +1179,7 @@ async def game(ctx):
         button_scout.callback = button_scout_callback
         button_recruit.callback = button_recruit_callback
         button_letleave.callback = button_letleave_callback
+        button_nfts.callback = button_nfts_callback
 
         showmenu = await ctx.send("\u200b", view=view, embed=embedmenu)
         await showmenu.delete(delay=3600.0)
