@@ -15,7 +15,7 @@ import json
 # names library to generate random names
 
 ### Files
-## Players (DisplayName, OVR, Position, Owner, nationality)
+## Players (DisplayName, OVR, Position, Owner, nationality, nft, rarity)
 f_players = "players.csv"
 ## Teams
 # Name, user_id, boolean(0 : bot, 1 : player)
@@ -52,14 +52,17 @@ async def create_player(id, manager):
         m_owner = id
         nationalities = ["gb", "us", "au", "fr", "ca", "es", "cu", "mx"]
         nat = choice(nationalities)
-        pfile.write(manager + "," + str(m_ovr) + "," + m_pos + "," + str(m_owner) + "," + nat + "\n")
+        nft = "0"
+        rarity = "no"
+        pfile.write(manager + "," + str(m_ovr) + "," + m_pos + "," + str(m_owner) + "," + nat + "," + nft + "," + rarity + "\n")
+
         while i <= 11:
             # To create better bot teams than players teams
             if int(id) < 1000000:
                 ovr = randint(65, 82)
             else:
                 # Value for players generate by Discord User creation team (Issue #2)
-                ovr = randint(25, 40)
+                ovr = randint(25, 35)
 
             displayName = names.get_full_name(gender='male')
             if i == 1:
@@ -85,7 +88,7 @@ async def create_player(id, manager):
             elif i == 11:
                 position = "st"
             owner = id
-            pfile.write(displayName + "," + str(ovr) + "," + position + "," + str(owner) + ",\n")
+            pfile.write(displayName + "," + str(ovr) + "," + position + "," + str(owner) + "," + nat + "," + nft + "," + rarity + ",\n")
             i += 1
 
 
@@ -128,13 +131,17 @@ async def generate_player(i):
         position = "st"
 
     owner = id
-    new_line = displayName + "," + str(ovr) + "," + position + "," + str(owner) + "," + nat + ",\n"
+    nft = "0"
+    rarity = "no"
+    new_line = displayName + "," + str(ovr) + "," + position + "," + str(owner) + "," + nat + "," + nft + "," + rarity + ",\n"
     return new_line
 
 
 async def scout_player(id, num, name, ovr, pos, nat):
     # nationalities = ["gb", "us", "au", "fr", "ca", "es", "cu", "mx"]
     nat = nat
+    nft = "0"
+    rarity = "no"
     pfile = open(f_players, "r+")
     c = 0
     playerfile = pfile.readlines()
@@ -149,7 +156,7 @@ async def scout_player(id, num, name, ovr, pos, nat):
                     ovr = ovr
                     position = pos
                     owner = id
-                    new_line = displayName + "," + str(ovr) + "," + position + "," + str(owner) + "," + nat + ",\n"
+                    new_line = displayName + "," + str(ovr) + "," + position + "," + str(owner) + "," + nat + "," + nft + "," + rarity + ",\n"
                     replace = line.replace(line, new_line)
                     line = replace
                     if "," not in line:
@@ -470,6 +477,8 @@ async def viewteam(id):
             ovr = p_info[i].split(",")[1]
             pos = p_info[i].split(",")[2].upper()
             nat = p_info[i].split(",")[4]
+            nft = p_info[i].split(",")[5]
+            rarity = p_info[i].split(",")[6]
             embeddescription = embeddescription + ":flag_" + nat + ":`" + pos + "  " + ovr + "` *" + name + "*\n"
             i += 1
 
@@ -574,6 +583,7 @@ async def findteam(id):
 
         return embedteam, teamlist
 
+
 async def scout(id):
     user_id = str(id)
     p_info = await view_players(user_id)
@@ -584,6 +594,8 @@ async def scout(id):
     ovr = newp_info.split(",")[1]
     pos = newp_info.split(",")[2].upper()
     nat = newp_info.split(",")[4]
+    rarity = "no"
+    nft = "0"
 
     ## Case of similar posts
 
@@ -670,6 +682,14 @@ async def scoutnft(id, name, ovr, pos, nat):
     pos = pos
     number = positions[pos]
     nat = nat
+    nft = "1"
+    rarity = "commun"
+    if ovr >= 85:
+        rarity = "legend"
+    elif ovr >= 75:
+        rarity = "rare"
+    elif ovr >= 65:
+        rarity = "uncommon"
 
     ## Case of similar posts
 
@@ -715,6 +735,8 @@ async def scoutnft(id, name, ovr, pos, nat):
     playerinfo.append(ovr)
     playerinfo.append(pos)
     playerinfo.append(nat)
+    playerinfo.append(nft)
+    playerinfo.append(rarity)
 
     i = int(number)
     default_color = 0xffff00
@@ -857,9 +879,18 @@ async def view_nfts(id, indice):
         firstName = nfts[i]['metadata']['firstName']
         lastName = nfts[i]['metadata']['lastName']
         displayName = firstName + " " + lastName
+
+        rarity = "commun"
+        if ovr >= 85:
+            rarity = "legend"
+        elif ovr >= 75:
+            rarity = "rare"
+        elif ovr >= 65:
+            rarity = "uncommon"
+
         #print(nationality +"," + positions +"," + str(ovr) + "," +displayName)
         embeddescription = embeddescription + ":flag_" + nation + ":`" + positions + "  " + str(ovr) + "` *" + displayName + "*\n"
-        playerslist.append(nation+","+positions+","+str(ovr)+","+displayName)
+        playerslist.append(nation+","+positions+","+str(ovr)+","+displayName+","+rarity)
 
         i += 1
 
@@ -911,7 +942,7 @@ async def create(ctx, name):
                 else:
                     await ctx.send("Sorry, you already have a team !")
             else:
-                tfile.write(teamname + "," + team_id + ",no,\n")
+                tfile.write(teamname + "," + team_id + ",yes,\n")
                 await create_player(team_id, username)
                 await ctx.send("Team " + teamname + " created !")
 
@@ -1048,6 +1079,7 @@ async def game(ctx):
                         positions = x.split(",")[1]
                         ovr = x.split(",")[2]
                         displayName = x.split(",")[3]
+                        rarity = x.split(",")[4]
                         description = description + ":flag_" + nation + ":`" + positions + "  " + str(
                             ovr) + "` *" + displayName + "*\n"
                         if i == 0:
@@ -1084,6 +1116,7 @@ async def game(ctx):
                             pos = player.split(",")[1]
                             ovr = player.split(",")[2]
                             name = player.split(",")[3]
+                            rarity = player.split(",")[4]
                             print(player)
                             embedscout = await scoutnft(user_id, name, ovr, pos, nat)
                             await showmenu.edit(view=viewscout, embed=embedscout)
@@ -1129,7 +1162,7 @@ async def game(ctx):
                 embednfts, viewnfts = await nftembed(playerslist, indice)
 
                 await showmenu.edit(view=viewnfts, embed=embednfts)
-                await interaction.response.defer(ephemeral=True)
+                await interaction.response.defer(ephemeral=False)
 
         async def button_scout_callback(interaction):
             if str(interaction.user) == user_name:
