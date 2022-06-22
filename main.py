@@ -8,7 +8,6 @@ import asyncpg
 from random import randint, random, sample, choice
 import requests
 import json
-import time
 
 load_dotenv(dotenv_path="config")
 
