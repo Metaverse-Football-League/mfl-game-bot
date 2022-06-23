@@ -207,10 +207,11 @@ async def view_players(id):
         return playerlist
 
 
-async def simulate(id, vs):
+async def simulate(id, vs, event):
     # Find player's team information
     t_info = await view_team(id)
     p_info = await view_players(id)
+    event = event
 
     def player_form(teamform):
 
@@ -455,7 +456,11 @@ async def simulate(id, vs):
 
     def register_goals(player, team):
         # Update f_goals
-        pfile = open(f_goals, "r+")
+        if event == "no":
+            pfile = open(f_goals, "r+")
+        else:
+            pfile = open("goals_"+event+".csv", "r+")
+
         playerfile = pfile.readlines()
         playerlist = []
         status = 0
@@ -617,7 +622,13 @@ async def viewteam(id):
         return embedteam
 
 
-async def viewleads(id):
+async def viewleads(i):
+    f_goals = "goals.csv"
+
+    if "event_" in i:
+        f_goals = "goals_"+i+".csv"
+        print(f_goals)
+
     with open(f_goals, "r") as tgoals:
         goalfile = tgoals.readlines()
         goalfile.sort(reverse=True, key=lambda x: int(x.split(",")[0]))
@@ -646,8 +657,14 @@ async def viewleads(id):
             embedteam = "\u200b"
 
         default_color = 0x00ff00
-        embedlead = discord.Embed(
-            title="Leaderboards", description="Best players", color=default_color)
+
+        if "event_" in i:
+            name = i.split("_")[1].upper()
+            embedlead = discord.Embed(
+                title="Leaderboards", description="Best players for the **"+name+"** event", color=default_color)
+        else:
+            embedlead = discord.Embed(
+                title="Leaderboards", description="Best players", color=default_color)
         embedlead.add_field(name="Player", value=embedname)
         embedlead.add_field(name="Team", value=embedteam)
         embedlead.add_field(name="Goals", value=embedscore)
@@ -655,24 +672,27 @@ async def viewleads(id):
         return embedlead
 
 
-async def viewevents(id):
+async def viewevents(i):
     with open(f_events, "r") as tevents:
         eventfile = tevents.readlines()
-        default_color = 0x00ff00
-        embedevent = discord.Embed(
-            title="Events", description="Below the list of current events", color=default_color)
+        eventlist = []
 
         for event in eventfile:
-            eventname = event.split(",")[0]
-            eventdesc = event.split(",")[1]
-            eventstatus = event.split(",")[2]
+            eventcode = event.split(",")[0]
+            eventname = event.split(",")[1]
+            eventdesc = event.split(",")[2]
+            eventstatus = event.split(",")[3]
+            eventkind = event.split(",")[4]
 
             if int(eventstatus) > 1:
                 continue
 
-            embedevent.add_field(name=eventname, value=eventdesc)
+            if i == "all":
+                eventlist.append(event)
+            elif i == eventkind:
+                eventlist.append(event)
 
-        return embedevent
+        return eventlist
 
 
 async def findteam(id):
@@ -702,7 +722,7 @@ async def findteam(id):
         default_color = 0x00ff00
 
         embedteam = discord.Embed(
-            title="Match Settings", description="Choose your opponent", color=default_color)
+            title="Match Settings", description="Choose your opponent or play an event", color=default_color)
 
         embedopponents = "`" + teamlist[0].split(",")[0] + "` *" + teamlist[0].split(",")[2] + "*\n"
         embedopponents = embedopponents + "`" + teamlist[1].split(",")[0] + "` *" + teamlist[1].split(",")[2] + "*\n"
@@ -883,9 +903,10 @@ async def scoutnft(id, name, ovr, pos, nat, rarity):
     return embedplayer
 
 #### SIMULATE MATCHES ####
-async def play(id, vs):
+async def play(id, vs, events):
     user_id = str(id)
-    matchinfos, matchsevents, home_scorers, away_scorers = await simulate(user_id, vs)
+    print(events)
+    matchinfos, matchsevents, home_scorers, away_scorers = await simulate(user_id, vs, events)
     home_info = matchinfos[0]
     away_info = matchinfos[1]
     home_name = home_info[0]
@@ -1084,7 +1105,8 @@ async def change(ctx, user: discord.User):
 @bot.command(name='match')
 async def match(ctx, user1: discord.User, user2: discord.User):
     if ctx.channel.id == gamechan:
-        match = await play(str(user1.id), str(user2.id))
+        events = "no"
+        match = await play(str(user1.id), str(user2.id), events)
         view = View()
         default_color = 0x00ff00
         embedmenu = discord.Embed(
@@ -1136,13 +1158,61 @@ async def game(ctx):
         viewmatch = View()
         viewmatch.add_item(button_finishmatch)
         viewmatch.add_item(button_team)
+
+        viewlead = View()
+        viewlead.add_item(button_team)
+        viewlead.add_item(button_scout)
+        viewlead.add_item(button_play)
+
+
         skip = 0
 
         async def button_play_callback(interaction):
             if str(interaction.user) == user_name:
                 embedteam, teamlist = await findteam(user_id)
+                eventlist = await viewevents("vs")
 
                 viewopponents = View()
+                i = 1
+
+                if eventlist[0] != "":
+                    button_ev1 = None
+                    button_ev2 = None
+                    button_ev3 = None
+                    button_ev4 = None
+                    button_ev5 = None
+
+                    for event in eventlist:
+                        eventcode = event.split(",")[0]
+                        eventname = event.split(",")[1]
+                        eventdesc = event.split(",")[2]
+                        eventstatus = event.split(",")[3]
+                        eventkind = event.split(",")[4]
+                        eventopponent = event.split(",")[5]
+
+                        if i == 1:
+                            button_ev1 = Button(label=eventname, style=discord.ButtonStyle.blurple,
+                                                    row=1, custom_id=eventcode+","+eventopponent)
+                            viewopponents.add_item(button_ev1)
+                        elif i == 2:
+                            button_ev2 = Button(label=eventname, style=discord.ButtonStyle.blurple,
+                                                    row=1, custom_id=eventcode+","+eventopponent)
+                            viewopponents.add_item(button_ev2)
+                        elif i == 3:
+                            button_ev3 = Button(label=eventname, style=discord.ButtonStyle.blurple,
+                                                    row=1, custom_id=eventcode+","+eventopponent)
+                            viewopponents.add_item(button_ev3)
+                        elif i == 4:
+                            button_ev4 = Button(label=eventname, style=discord.ButtonStyle.blurple,
+                                                    row=1, custom_id=eventcode+","+eventopponent)
+                            viewopponents.add_item(button_ev4)
+                        elif i == 5:
+                            button_ev5 = Button(label=eventname, style=discord.ButtonStyle.blurple,
+                                                    row=1, custom_id=eventcode+","+eventopponent)
+                            viewopponents.add_item(button_ev5)
+                        i += 1
+
+
 
                 id_random = str(teamlist[2].split(",")[1])
                 button_random = Button(label="vs Random", style=discord.ButtonStyle.grey, custom_id=id_random,
@@ -1172,7 +1242,13 @@ async def game(ctx):
                         skip = 0
 
                         vs = interaction.data['custom_id']
-                        embedlist = await play(user_id, vs)
+                        if "event_" in vs:
+                            events = vs.split(",")[0]
+                            vs = vs.split(",")[1]
+                        else:
+                            events = "no"
+
+                        embedlist = await play(user_id, vs, events)
 
                         async def button_finishmatch_callback(interaction):
                             global skip
@@ -1199,6 +1275,16 @@ async def game(ctx):
                 button_random.callback = button_vs_callback
                 button_vs1.callback = button_vs_callback
                 button_vs2.callback = button_vs_callback
+                if button_ev1:
+                    button_ev1.callback = button_vs_callback
+                if button_ev2:
+                    button_ev2.callback = button_vs_callback
+                if button_ev3:
+                    button_ev3.callback = button_vs_callback
+                if button_ev4:
+                    button_ev4.callback = button_vs_callback
+                if button_ev5:
+                    button_ev5.callback = button_vs_callback
 
         async def button_team_callback(interaction):
             if str(interaction.user) == user_name:
@@ -1333,13 +1419,94 @@ async def game(ctx):
         async def button_leaderboard_callback(interaction):
             if str(interaction.user) == user_name:
                 embedlead = await viewleads(user_id)
-                await showmenu.edit(view=view, embed=embedlead)
+                eventlist = await viewevents("vs")
+                i = 1
+
+                button_global = Button(label="Global", style=discord.ButtonStyle.blurple,
+                                        row=1, custom_id="goals")
+                viewlead.add_item(button_global)
+
+                if eventlist[0] != "":
+                    button_ev1 = None
+                    button_ev2 = None
+                    button_ev3 = None
+                    button_ev4 = None
+                    button_ev5 = None
+
+                    for event in eventlist:
+                        eventcode = event.split(",")[0]
+                        eventname = event.split(",")[1]
+                        eventdesc = event.split(",")[2]
+                        eventstatus = event.split(",")[3]
+                        eventkind = event.split(",")[4]
+                        eventopponent = event.split(",")[5]
+
+                        if i == 1:
+                            button_ev1 = Button(label=eventname, style=discord.ButtonStyle.blurple,
+                                                    row=2, custom_id=eventcode+","+eventopponent)
+                            viewlead.add_item(button_ev1)
+                        elif i == 2:
+                            button_ev2 = Button(label=eventname, style=discord.ButtonStyle.blurple,
+                                                    row=2, custom_id=eventcode+","+eventopponent)
+                            viewlead.add_item(button_ev2)
+                        elif i == 3:
+                            button_ev3 = Button(label=eventname, style=discord.ButtonStyle.blurple,
+                                                    row=2, custom_id=eventcode+","+eventopponent)
+                            viewlead.add_item(button_ev3)
+                        elif i == 4:
+                            button_ev4 = Button(label=eventname, style=discord.ButtonStyle.blurple,
+                                                    row=2, custom_id=eventcode+","+eventopponent)
+                            viewlead.add_item(button_ev4)
+                        elif i == 5:
+                            button_ev5 = Button(label=eventname, style=discord.ButtonStyle.blurple,
+                                                    row=2, custom_id=eventcode+","+eventopponent)
+                            viewlead.add_item(button_ev5)
+                        i += 1
+
+                async def button_leads_callback(interaction):
+                    event = interaction.data['custom_id'].split(",")[0]
+                    print(event)
+
+                    embedlead = await viewleads(event)
+
+                    await showmenu.edit(view=viewlead, embed=embedlead)
+                    await interaction.response.defer(ephemeral=True)
+
+
+                button_global.callback = button_leads_callback
+                if button_ev1:
+                    button_ev1.callback = button_leads_callback
+                if button_ev2:
+                    button_ev2.callback = button_leads_callback
+                if button_ev3:
+                    button_ev3.callback = button_leads_callback
+                if button_ev4:
+                    button_ev4.callback = button_leads_callback
+                if button_ev5:
+                    button_ev5.callback = button_leads_callback
+
+
+                await showmenu.edit(view=viewlead, embed=embedlead)
                 await interaction.response.defer(ephemeral=True)
 
         async def button_events_callback(interaction):
             if str(interaction.user) == user_name:
-                embedevents = await viewevents(user_id)
-                await showmenu.edit(view=view, embed=embedevents)
+                eventlist = await viewevents("all")
+
+                default_color = 0x00ff00
+                embedevent = discord.Embed(
+                    title="Events", description="Below the list of current events", color=default_color)
+
+                for event in eventlist:
+                    eventcode = event.split(",")[0]
+                    eventname = event.split(",")[1]
+                    eventdesc = event.split(",")[2]
+                    eventstatus = event.split(",")[3]
+                    eventkind = event.split(",")[4]
+
+                    embedevent.add_field(name=eventname, value=eventdesc)
+
+                await showmenu.edit(view=view, embed=embedevent)
                 await interaction.response.defer(ephemeral=True)
 
         async def button_recruit_callback(interaction):
