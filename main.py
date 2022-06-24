@@ -29,7 +29,8 @@ load_dotenv(dotenv_path="config")
 intents = discord.Intents.all()
 
 ### Set prefix
-bot = commands.Bot(command_prefix="!", intents=intents)
+#bot = commands.Bot(command_prefix="!", intents=intents)
+bot = discord.Bot()
 
 ########################################################################################################
 ## START OF PROCESS ##
@@ -981,29 +982,56 @@ async def play(id, vs, events):
 async def view_nfts(id, indice):
 
     nations_prefix = {
+        'ALGERIA': 'dz',
         'ARGENTINA': 'ar',
+        'AUSTRALIA': 'au',
         'AUSTRIA': 'at',
         'BELGIUM': 'be',
         'BRAZIL': 'br',
+        'CANADA': 'ca',
         'CAMEROON': 'cm',
+        'CHILE': 'cl',
+        'COLOMBIA': 'co',
+        'COSTA_RICA': 'cr',
         'CROATIA': 'hr',
         'CZECH_REPUBLIC': 'cz',
+        'DENMARK': 'dk',
+        'ECUADOR': 'ec',
         'ENGLAND': 'gb',
+        'EGYPT': 'eg',
         'FRANCE': 'fr',
         'GERMANY': 'de',
+        'HUNGARY': 'hu',
+        'KOREA_REPUBLIC': 'kr',
+        'ITALY': 'it',
+        'IRAN': 'ir',
         'JAPAN': 'jp',
         'MEXICO': 'mx',
+        'MOROCCO': 'ma',
         'NETHERLANDS': 'nl',
+        'NIGERIA': 'ng',
         'NORWAY': 'no',
         'PARAGUAY': 'py',
+        'PERU': 'pe',
+        'POLAND': 'pl',
+        'PORTUGAL': 'pt',
         'UKRAINE': 'ua',
+        'REPUBLIC_OF_IRELAND': 'ie',
         'ROMANIA': 'ro',
+        'RUSSIA': 'ru',
         'SAUDI_ARABIA': 'sa',
+        'SCOTLAND': 'gb',
+        'SENEGAL': 'sn',
         'SERBIA': 'rs',
         'SLOVAKIA': 'sk',
         'SPAIN': 'es',
         'SWITZERLAND': 'ch',
-        'SWEDEN': 'se'
+        'SWEDEN': 'se',
+        'TUNISIA': 'tn',
+        'TURKEY': 'tr',
+        'UNITED_STATES': 'us',
+        'URUGUAY': 'uy',
+        'WALES': 'gb'
 
     }
 
@@ -1065,19 +1093,21 @@ async def on_ready():
     print("Bot Ready")
 
 ### Discord configurations ###
-gamechan = 983723647002882058
+gamechan = [983723647002882058, 989056372198998076]
 adminid = "593086239024873483"
 
+
 #### CREATE TEAM ####
-@bot.command(name='create')
+@bot.command(name='create', description='The first step to enter into the game...')
 async def create(ctx, name):
     # Usage : !create Team_Name
-    if ctx.channel.id == gamechan:
+    if ctx.channel.id in gamechan:
         teamname = name
         with open(f_teams, "r+") as tfile:
-            user_id = str(ctx.message.author.id)
-            if int(user_id) > 1000000:
-                user = bot.get_user(int(user_id))
+            user = ctx.interaction.user
+            user_id = str(user.id)
+            if user.id > 1000000:
+                print(user)
                 username = user.name
             else:
                 username = "BOT"
@@ -1087,24 +1117,31 @@ async def create(ctx, name):
                     team_id = str(randint(1, 999999))
                     tfile.write(teamname + "," + team_id + ",no,3,\n")
                     await create_player(team_id, username)
-                    await ctx.send("Team " + teamname + " created !")
+                    await ctx.respond("Team " + teamname + " created !", ephemeral=True)
                 else:
-                    await ctx.send("Sorry, you already have a team !")
+                    await ctx.respond("Sorry, you already have a team !", ephemeral=True)
             else:
                 tfile.write(teamname + "," + team_id + ",yes,3,\n")
                 await create_player(team_id, username)
-                await ctx.send("Team " + teamname + " created !")
+                await ctx.respond("Team " + teamname + " created !", ephemeral=True)
 
 
 @bot.command(name='view')
 async def change(ctx, user: discord.User):
-    if ctx.channel.id == gamechan:
+    print(ctx.channel.id)
+    if ctx.channel.id in gamechan:
         embedteam = await viewteam(str(user.id))
-        await ctx.send(embed=embedteam)
+        await ctx.respond(embed=embedteam, ephemeral=False)
+
+#### Menu display
+@bot.command(name="test")
+async def test(ctx):
+    await ctx.respond("Test", ephemeral=True)
+
 
 @bot.command(name='match')
 async def match(ctx, user1: discord.User, user2: discord.User):
-    if ctx.channel.id == gamechan:
+    if ctx.channel.id in gamechan:
         events = "no"
         match = await play(str(user1.id), str(user2.id), events)
         view = View()
@@ -1112,20 +1149,20 @@ async def match(ctx, user1: discord.User, user2: discord.User):
         embedmenu = discord.Embed(
             title='Discord Football Game', color=default_color)
 
-        showmenu = await ctx.send("\u200b", view=view, embed=embedmenu)
-        await showmenu.delete(delay=3600.0)
+        showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=True)
 
         for x in match:
-            await showmenu.edit(view=view, embed=x)
+            #await showmenu.edit(view=view, embed=x)
+            await showmenu.edit_original_message(view=view, embed=x)
             await asyncio.sleep(1)
 
 
 #### Menu display
-@bot.command(name='game')
+@bot.command(name='game', description='Access to the menu, build your team and compete...')
 async def game(ctx):
-    if ctx.channel.id == gamechan:
-        user_id = str(ctx.message.author.id)
-        user_name = str(ctx.message.author)
+    if ctx.channel.id in gamechan:
+        user_id = str(ctx.interaction.user.id)
+        user_name = str(ctx.interaction.user)
         default_color = 0x00ff00
         embedmenu = discord.Embed(
             title='Discord Football Game', color=default_color)
@@ -1142,28 +1179,17 @@ async def game(ctx):
                                     emoji="🏆")
         button_events = Button(label="Events", style=discord.ButtonStyle.blurple, row=1, custom_id="events", emoji="⭐")
 
-        view = View()
-        view.add_item(button_team)
-        view.add_item(button_scout)
-        view.add_item(button_play)
-        view.add_item(button_events)
-        view.add_item(button_leaderboard)
-        view.add_item(button_nfts)
-
-        viewscout = View()
-        viewscout.add_item(button_team)
-        viewscout.add_item(button_recruit)
-        viewscout.add_item(button_letleave)
+        viewdefault = View()
+        viewdefault.add_item(button_team)
+        viewdefault.add_item(button_scout)
+        viewdefault.add_item(button_play)
+        viewdefault.add_item(button_events)
+        viewdefault.add_item(button_leaderboard)
+        viewdefault.add_item(button_nfts)
 
         viewmatch = View()
         viewmatch.add_item(button_finishmatch)
         viewmatch.add_item(button_team)
-
-        viewlead = View()
-        viewlead.add_item(button_team)
-        viewlead.add_item(button_scout)
-        viewlead.add_item(button_play)
-
 
         skip = 0
 
@@ -1233,8 +1259,8 @@ async def game(ctx):
 
                 viewopponents.add_item(button_team)
 
-                await showmenu.edit(view=viewopponents, embed=embedteam)
-                await interaction.response.defer(ephemeral=True)
+                await showmenu.edit_original_message(view=viewopponents, embed=embedteam)
+                await interaction.response.defer()
 
                 async def button_vs_callback(interaction):
                     if str(interaction.user) == user_name:
@@ -1255,8 +1281,8 @@ async def game(ctx):
 
                             if str(interaction.user) == user_name:
                                 skip = 1
-                                await showmenu.edit(view=viewmatch, embed=embedlist[-1])
-                                await interaction.response.defer(ephemeral=False)
+                                await showmenu.edit_original_message(view=viewmatch, embed=embedlist[-1])
+                                await interaction.response.defer()
 
                         for x in embedlist:
 
@@ -1264,11 +1290,11 @@ async def game(ctx):
                             if skip == 1:
                                 break
 
-                            await showmenu.edit(view=viewmatch, embed=x)
+                            await showmenu.edit_original_message(view=viewmatch, embed=x)
                             await asyncio.sleep(1)
 
                             try:
-                                await interaction.response.defer(ephemeral=False)
+                                await interaction.response.defer()
                             except discord.InteractionResponded:
                                 continue
 
@@ -1289,13 +1315,25 @@ async def game(ctx):
         async def button_team_callback(interaction):
             if str(interaction.user) == user_name:
                 embedteam = await viewteam(user_id)
-                await showmenu.edit(view=view, embed=embedteam)
-                await interaction.response.defer(ephemeral=True)
+
+                view = View()
+                view.add_item(button_team)
+                view.add_item(button_scout)
+                view.add_item(button_play)
+                view.add_item(button_events)
+                view.add_item(button_leaderboard)
+                view.add_item(button_nfts)
+
+                await showmenu.edit_original_message(view=view, embed=embedteam)
+                await interaction.response.defer()
 
         async def button_nfts_callback(interaction):
             if str(interaction.user) == user_name:
                 global indice
                 indice = 0
+
+                await interaction.response.defer()
+
                 playerslist = await view_nfts(user_id, indice)
 
                 async def nftembed(playerslist, indice):
@@ -1359,6 +1397,11 @@ async def game(ctx):
 
                     async def button_scoutnft_callback(interaction):
                         if str(interaction.user) == user_name:
+                            viewscout = View()
+                            viewscout.add_item(button_team)
+                            viewscout.add_item(button_recruit)
+                            viewscout.add_item(button_letleave)
+
                             select = int(interaction.data['custom_id'].split(" ")[1])
                             player = playerslist[indice][select]
                             nat = player.split(",")[0]
@@ -1367,8 +1410,9 @@ async def game(ctx):
                             name = player.split(",")[3]
                             rarity = player.split(",")[4]
                             embedscout = await scoutnft(user_id, name, ovr, pos, nat, rarity)
-                            await showmenu.edit(view=viewscout, embed=embedscout)
-                            await interaction.response.defer(ephemeral=True)
+
+                            await showmenu.edit_original_message(view=viewscout, embed=embedscout)
+                            await interaction.response.defer()
 
                     if b1:
                         b1.callback = button_scoutnft_callback
@@ -1397,8 +1441,9 @@ async def game(ctx):
 
                         embednfts, viewnfts = await nftembed(playerslist, indice)
 
-                        await showmenu.edit(view=viewnfts, embed=embednfts)
-                        await interaction.response.defer(ephemeral=True)
+
+                        await showmenu.edit_original_message(view=viewnfts, embed=embednfts)
+                        await interaction.response.defer()
 
                 button_previous = Button(style=discord.ButtonStyle.blurple, custom_id="prev", emoji="◀")
                 button_next = Button(style=discord.ButtonStyle.blurple, custom_id="next", emoji="▶")
@@ -1407,17 +1452,27 @@ async def game(ctx):
 
                 embednfts, viewnfts = await nftembed(playerslist, indice)
 
-                await showmenu.edit(view=viewnfts, embed=embednfts)
-                await interaction.response.defer(ephemeral=True)
+                await showmenu.edit_original_message(view=viewnfts, embed=embednfts)
+                #await interaction.response.defer()
 
         async def button_scout_callback(interaction):
             if str(interaction.user) == user_name:
+                viewscout = View()
+                viewscout.add_item(button_team)
+                viewscout.add_item(button_recruit)
+                viewscout.add_item(button_letleave)
                 embedplayer = await scout(user_id)
-                await showmenu.edit(view=viewscout, embed=embedplayer)
-                await interaction.response.defer(ephemeral=True)
+                await showmenu.edit_original_message(view=viewscout, embed=embedplayer)
+                await interaction.response.defer()
 
         async def button_leaderboard_callback(interaction):
             if str(interaction.user) == user_name:
+
+                viewlead = View()
+                viewlead.add_item(button_team)
+                viewlead.add_item(button_scout)
+                viewlead.add_item(button_play)
+
                 embedlead = await viewleads(user_id)
                 eventlist = await viewevents("vs")
                 i = 1
@@ -1436,6 +1491,7 @@ async def game(ctx):
                     for event in eventlist:
                         eventcode = event.split(",")[0]
                         eventname = event.split(",")[1]
+                        print(eventname)
                         eventdesc = event.split(",")[2]
                         eventstatus = event.split(",")[3]
                         eventkind = event.split(",")[4]
@@ -1469,8 +1525,8 @@ async def game(ctx):
 
                     embedlead = await viewleads(event)
 
-                    await showmenu.edit(view=viewlead, embed=embedlead)
-                    await interaction.response.defer(ephemeral=True)
+                    await showmenu.edit_original_message(view=viewlead, embed=embedlead)
+                    await interaction.response.defer()
 
 
                 button_global.callback = button_leads_callback
@@ -1485,9 +1541,8 @@ async def game(ctx):
                 if button_ev5:
                     button_ev5.callback = button_leads_callback
 
-
-                await showmenu.edit(view=viewlead, embed=embedlead)
-                await interaction.response.defer(ephemeral=True)
+                await showmenu.edit_original_message(view=viewlead, embed=embedlead)
+                await interaction.response.defer()
 
         async def button_events_callback(interaction):
             if str(interaction.user) == user_name:
@@ -1506,8 +1561,8 @@ async def game(ctx):
 
                     embedevent.add_field(name=eventname, value=eventdesc)
 
-                await showmenu.edit(view=view, embed=embedevent)
-                await interaction.response.defer(ephemeral=True)
+                await showmenu.edit_original_message(view=view, embed=embedevent)
+                await interaction.response.defer()
 
         async def button_recruit_callback(interaction):
             if str(interaction.user) == user_name:
@@ -1524,13 +1579,30 @@ async def game(ctx):
                 await scout_player(user_id, num, name, ovr, pos, nat)
                 embedteam = await viewteam(user_id)
 
-                await showmenu.edit(view=view, embed=embedteam)
-                await interaction.response.defer(ephemeral=True)
+                view = View()
+                view.add_item(button_team)
+                view.add_item(button_scout)
+                view.add_item(button_play)
+                view.add_item(button_events)
+                view.add_item(button_leaderboard)
+                view.add_item(button_nfts)
+
+                await showmenu.edit_original_message(view=view, embed=embedteam)
+                await interaction.response.defer()
 
         async def button_letleave_callback(interaction):
             if str(interaction.user) == user_name:
-                await showmenu.edit(view=view, embed=embedmenu)
-                await interaction.response.defer(ephemeral=True)
+
+                view = View()
+                view.add_item(button_team)
+                view.add_item(button_scout)
+                view.add_item(button_play)
+                view.add_item(button_events)
+                view.add_item(button_leaderboard)
+                view.add_item(button_nfts)
+
+                await showmenu.edit_original_message(view=view, embed=embedmenu)
+                await interaction.response.defer()
 
         button_play.callback = button_play_callback
         button_events.callback = button_events_callback
@@ -1541,8 +1613,9 @@ async def game(ctx):
         button_letleave.callback = button_letleave_callback
         button_nfts.callback = button_nfts_callback
 
-        showmenu = await ctx.send("\u200b", view=view, embed=embedmenu)
-        await showmenu.delete(delay=3600.0)
+        view = viewdefault
+
+        showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=True)
 
 
 #### BOT TOKEN ########################
