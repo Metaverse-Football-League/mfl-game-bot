@@ -1,5 +1,4 @@
 import random
-
 import discord
 from random import randint
 import teams
@@ -9,20 +8,18 @@ f_goals = "goals.csv"
 
 commentaries = {
     'win': ["At home, **TEAM1** wins the game against TEAM2",
-                "**TEAM1** makes a great match and overcomes TEAM2"],
-    'ARGENTINA': 'ar',
-    'AUSTRALIA': 'au',
-    'AUSTRIA': 'at',
-    'BELGIUM': 'be',
-    'BRAZIL': 'br',
-    'CANADA': 'ca',
-    'CAMEROON': 'cm'
+            "**TEAM1** makes a great match and overcomes TEAM2"]
+
 }
 
 async def simulate(id, vs, event):
     # Find player's team information
     t_info = await teams.get(id)
     p_info = await players.get(id)
+    playerslist = await players.get2(id)
+    for x in playerslist:
+        print(x.displayName)
+
     event = event
 
     def player_form(teamform):
@@ -208,11 +205,6 @@ async def simulate(id, vs, event):
     def get_actions(team):
         ## Define scoring probabilities
         what = randint(1, 20)
-        if what > 17:
-            what = "Goal"
-
-        else:
-            what = "No Goal"
 
         whonumber = randint(1, 100)
         if team == "home":
@@ -264,7 +256,21 @@ async def simulate(id, vs, event):
             else:
                 who = away_p11
 
-        return who.split(",")[0], what, team
+        who = who.split(",")[0]
+
+        if what > 17:
+            what = "Goal"
+            register_goals(who, teamname)
+        elif what > 15:
+            what = "Bonus"
+        elif what > 4:
+            what = "Miss"
+        elif what > 2:
+            what = "Yellow Card"
+        else:
+            what = "Red Card"
+
+        return who, what, team
 
     def register_goals(player, team):
         # Update f_goals
@@ -311,6 +317,7 @@ async def simulate(id, vs, event):
 
     while i < minutes:
 
+        print(str(i)+" / "+str(minutes))
         ## Recheck team value (can change during game)
         home_bonus = round(home_ovr - away_ovr)
         ## Give a balance between the 2 teams (if same OVR : 1-50 and 51-100 to find who makes the action)
@@ -335,18 +342,26 @@ async def simulate(id, vs, event):
                     score_home += 1
                     hvalue = hvalue + "," + who
                     commentary.append("What a goal for " + team_name_home + " by " + who)
-                    register_goals(who, team_name_home)
+                    #register_goals(who, team_name_home)
                 else:
                     score_away += 1
                     avalue = avalue + "," + who
                     commentary.append("What a goal for " + team_name_away + " by " + who)
-                    register_goals(who, team_name_away)
+                    #register_goals(who, team_name_away)
 
-            else:
+            elif what == "Bonus":
+                if team == "home":
+                    commentary.append(team_name_home + "is dominant")
+                else:
+                    commentary.append(team_name_away + "is dominant")
+
+            elif what == "Miss":
                 if team == "home":
                     commentary.append("Beautiful action for " + team_name_home + " but " + who + " missed the shoot")
                 else:
                     commentary.append("Beautiful action for " + team_name_away + " but " + who + " missed the shoot")
+            else:
+                commentary.append("To write")
 
         else:
             commentary.append("---")

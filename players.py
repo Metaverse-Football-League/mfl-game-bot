@@ -2,8 +2,21 @@ import discord
 import names
 from random import randint, choice
 
-
 f_players = "players.csv"
+
+
+class Player:
+    def __init__(self, displayName, ovr, pos, teamid, form, number, isYellowCard, isRedCard):
+        self.displayName = displayName
+        self.form = form
+        self.number = number
+        self.pos = pos
+        self.ovr = ovr
+        self.teamid = teamid
+        self.isYellowCard = isYellowCard
+        self.isRedCard = isRedCard
+
+
 
 async def create(id, manager):
     with open(f_players, "a") as pfile:
@@ -23,7 +36,8 @@ async def create(id, manager):
         nat = choice(nationalities)
         nft = "0"
         rarity = "no"
-        pfile.write(manager + "," + str(m_ovr) + "," + m_pos + "," + str(m_owner) + "," + nat + "," + nft + "," + rarity + "\n")
+        pfile.write(
+            manager + "," + str(m_ovr) + "," + m_pos + "," + str(m_owner) + "," + nat + "," + nft + "," + rarity + "\n")
 
         while i <= 11:
             # To create better bot teams than players teams
@@ -57,8 +71,10 @@ async def create(id, manager):
             elif i == 11:
                 position = "st"
             owner = id
-            pfile.write(displayName + "," + str(ovr) + "," + position + "," + str(owner) + "," + nat + "," + nft + "," + rarity + ",\n")
+            pfile.write(displayName + "," + str(ovr) + "," + position + "," + str(
+                owner) + "," + nat + "," + nft + "," + rarity + ",\n")
             i += 1
+
 
 async def get(id):
     with open(f_players, "r+") as pfile:
@@ -68,6 +84,28 @@ async def get(id):
             if id in line:
                 playerlist.append(line)
         return playerlist
+
+
+async def get2(id):
+    with open(f_players, "r+") as pfile:
+        playerfile = pfile.readlines()
+        playerlist = []
+        i = 0
+        for line in playerfile:
+            if id in line:
+                displayName = line.split(",")[0]
+                ovr = line.split(",")[1]
+                pos = line.split(",")[2]
+                teamid = line.split(",")[3]
+                isYellowCard = False
+                isRedCard = False
+                form = 3
+                myplayer = Player(displayName, ovr, pos, teamid, form, i, isYellowCard, isRedCard)
+                print(type(myplayer))
+                i += 1
+                playerlist.append(myplayer)
+        return playerlist
+
 
 async def generate(i):
     displayName = names.get_full_name(gender='male')
@@ -110,8 +148,10 @@ async def generate(i):
     owner = id
     nft = "0"
     rarity = "no"
-    new_line = displayName + "," + str(ovr) + "," + position + "," + str(owner) + "," + nat + "," + nft + "," + rarity + ",\n"
+    new_line = displayName + "," + str(ovr) + "," + position + "," + str(
+        owner) + "," + nat + "," + nft + "," + rarity + ",\n"
     return new_line
+
 
 async def scout(id):
     user_id = str(id)
@@ -177,7 +217,8 @@ async def scout(id):
 
     embedplayer = discord.Embed(
         title=name, description="You find a new player !", color=default_color)
-    embeddescription = ":flag_" + nat + ":`" + str(i) + " - " + pos + " " + ovr + "` " + rarity_flag + " *" + name + "*\n"
+    embeddescription = ":flag_" + nat + ":`" + str(
+        i) + " - " + pos + " " + ovr + "` " + rarity_flag + " *" + name + "*\n"
     oldplayer = ":flag_" + old_nat + ":`" + str(i) + " - " + old_pos + " " + old_ovr + "` ~~" + old_name + "~~\n"
 
     embedplayer.add_field(name="New player", value=embeddescription)
@@ -218,7 +259,8 @@ async def recruit(id, num, name, ovr, pos, nat):
                     ovr = ovr
                     position = pos
                     owner = id
-                    new_line = displayName + "," + str(ovr) + "," + position + "," + str(owner) + "," + nat + "," + nft + "," + rarity + ",\n"
+                    new_line = displayName + "," + str(ovr) + "," + position + "," + str(
+                        owner) + "," + nat + "," + nft + "," + rarity + ",\n"
                     replace = line.replace(line, new_line)
                     line = replace
                     if "," not in line:
