@@ -1,13 +1,8 @@
 import asyncio
 import discord
-from discord.ext import commands
-from discord.ui import Select, View, Item, Button
+from discord.ui import View, Button
 from dotenv import load_dotenv
-import names
-import asyncpg
-from random import randint, random, sample, choice
-import requests
-import json
+from random import randint, sample
 import events
 import leaderboards
 import matchengine
@@ -38,55 +33,18 @@ intents = discord.Intents.all()
 #bot = commands.Bot(command_prefix="!", intents=intents)
 bot = discord.Bot()
 
+### Discord configurations ###
+gamechan = [983723647002882058, 989056372198998076]
+adminid = "593086239024873483"
+
 ########################################################################################################
 ## START OF PROCESS ##
 ########################################################################################################
-
-async def findteam(id):
-    with open(f_teams, "r") as tfile:
-        teamfile = tfile.readlines()
-        teamlist = []
-        genopponent = sample(range(0, len(teamfile)), 5)
-        selected = 0
-
-        for x in genopponent:
-            if selected < 3:
-                try:
-                    teamid = str(teamfile[x].split(",")[1])
-                    if id == teamid:
-                        continue
-                    if int(teamid) > 1000000:
-                        user = bot.get_user(int(teamid))
-                        username = user.name
-                    else:
-                        username = "BOT"
-                    name = str(teamfile[x].split(",")[0])
-                    teamlist.append(name + "," + teamid + "," + username)
-                    selected += 1
-                except:
-                    continue
-
-        default_color = 0x00ff00
-
-        embedteam = discord.Embed(
-            title="Match Settings", description="Choose your opponent or play an event", color=default_color)
-
-        embedopponents = "`" + teamlist[0].split(",")[0] + "` *" + teamlist[0].split(",")[2] + "*\n"
-        embedopponents = embedopponents + "`" + teamlist[1].split(",")[0] + "` *" + teamlist[1].split(",")[2] + "*\n"
-        embedteam.add_field(name="Opponents", value=embedopponents)
-
-        return embedteam, teamlist
-
 
 #### BOT IS READY ####
 @bot.event
 async def on_ready():
     print("Bot Ready")
-
-### Discord configurations ###
-gamechan = [983723647002882058, 989056372198998076]
-adminid = "593086239024873483"
-
 
 #### CREATE TEAM ####
 @bot.command(name='create', description='The first step to enter into the game...')
@@ -106,13 +64,13 @@ async def create(ctx, name):
             if user_id in tfile.read():
                 if user_id == adminid:
                     team_id = str(randint(1, 999999))
-                    tfile.write(teamname + "," + team_id + ",no,3,\n")
+                    tfile.write(teamname + "," + team_id + ",no,3,BOT,\n")
                     await players.create(team_id, username)
                     await ctx.respond("Team " + teamname + " created !", ephemeral=True)
                 else:
                     await ctx.respond("Sorry, you already have a team !", ephemeral=True)
             else:
-                tfile.write(teamname + "," + team_id + ",yes,3,\n")
+                tfile.write(teamname + "," + team_id + ",yes,3,"+username+"\n")
                 await players.create(team_id, username)
                 await ctx.respond("Team " + teamname + " created !", ephemeral=True)
 
@@ -125,7 +83,7 @@ async def change(ctx, user: discord.User):
         await ctx.respond(embed=embedteam, ephemeral=False)
 
 
-@bot.command(name='match')
+@bot.command(name='match', description="Start a match !")
 async def match(ctx, user1: discord.User, user2: discord.User):
     if ctx.channel.id in gamechan:
         events = "no"
@@ -181,7 +139,7 @@ async def game(ctx):
 
         async def button_play_callback(interaction):
             if str(interaction.user) == user_name:
-                embedteam, teamlist = await findteam(user_id)
+                embedteam, teamlist = await teams.find(user_id)
                 eventlist = await events.get("vs")
 
                 viewopponents = View()

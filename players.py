@@ -1,13 +1,7 @@
-import asyncio
 import discord
-from discord.ext import commands
-from discord.ui import Select, View, Item, Button
-from dotenv import load_dotenv
 import names
-import asyncpg
-from random import randint, random, sample, choice
-import requests
-import json
+from random import randint, choice
+
 
 f_players = "players.csv"
 

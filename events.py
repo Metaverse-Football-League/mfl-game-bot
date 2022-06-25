@@ -1,18 +1,3 @@
-import asyncio
-import discord
-from discord.ext import commands
-from discord.ui import Select, View, Item, Button
-from dotenv import load_dotenv
-import names
-import asyncpg
-from random import randint, random, sample, choice
-import requests
-import json
-import matchengine
-import nfts
-import players
-import teams
-
 ## Event (name, desc, status)
 f_events = "events.csv"
 

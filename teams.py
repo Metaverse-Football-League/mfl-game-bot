@@ -1,13 +1,5 @@
-import asyncio
+from random import sample
 import discord
-from discord.ext import commands
-from discord.ui import Select, View, Item, Button
-from dotenv import load_dotenv
-import names
-import asyncpg
-from random import randint, random, sample, choice
-import requests
-import json
 import players
 
 ## Teams
@@ -78,4 +70,36 @@ async def get_All(id):
         embedteam.add_field(name="Coach", value=embedmanager, inline=False)
 
         return embedteam
+
+async def find(id):
+    with open(f_teams, "r") as tfile:
+        teamfile = tfile.readlines()
+        teamlist = []
+        genopponent = sample(range(0, len(teamfile)), 5)
+        selected = 0
+
+        for x in genopponent:
+            if selected < 3:
+                try:
+                    teamid = str(teamfile[x].split(",")[1])
+                    if id == teamid:
+                        continue
+                    else:
+                        username = str(teamfile[x].split(",")[4])
+                    name = str(teamfile[x].split(",")[0])
+                    teamlist.append(name + "," + teamid + "," + username)
+                    selected += 1
+                except:
+                    continue
+
+        default_color = 0x00ff00
+
+        embedteam = discord.Embed(
+            title="Match Settings", description="Choose your opponent or play an event", color=default_color)
+
+        embedopponents = "`" + teamlist[0].split(",")[0] + "` *" + teamlist[0].split(",")[2] + "*\n"
+        embedopponents = embedopponents + "`" + teamlist[1].split(",")[0] + "` *" + teamlist[1].split(",")[2] + "*\n"
+        embedteam.add_field(name="Opponents", value=embedopponents)
+
+        return embedteam, teamlist
 
