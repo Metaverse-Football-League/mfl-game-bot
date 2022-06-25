@@ -1,9 +1,23 @@
+import random
+
 import discord
 from random import randint
 import teams
 import players
 
 f_goals = "goals.csv"
+
+commentaries = {
+    'win': ["At home, **TEAM1** wins the game against TEAM2",
+                "**TEAM1** makes a great match and overcomes TEAM2"],
+    'ARGENTINA': 'ar',
+    'AUSTRALIA': 'au',
+    'AUSTRIA': 'at',
+    'BELGIUM': 'be',
+    'BRAZIL': 'br',
+    'CANADA': 'ca',
+    'CAMEROON': 'cm'
+}
 
 async def simulate(id, vs, event):
     # Find player's team information
@@ -177,9 +191,6 @@ async def simulate(id, vs, event):
     if bonus == 0:
         bonus = 1
 
-    ## Give a balance between the 2 teams (if same OVR : 1-50 and 51-100 to find who makes the action)
-    ratio = round(50 + 2 * home_bonus)
-
     # % per minute to have an action, in fact it will be nb_actions / minutes
     nb_actions = 4 * note + randint(1, bonus)
 
@@ -194,16 +205,18 @@ async def simulate(id, vs, event):
     away_scorers.append("\u200b")
     commentary.append("The match begins !")
 
-    def whoscore(team):
+    def get_actions(team):
         ## Define scoring probabilities
         what = randint(1, 20)
         if what > 17:
             what = "Goal"
+
         else:
             what = "No Goal"
 
         whonumber = randint(1, 100)
         if team == "home":
+            teamname = team_name_home
             if whonumber < 1:
                 who = home_p1
             elif 1 < whonumber < 7:
@@ -227,6 +240,7 @@ async def simulate(id, vs, event):
             else:
                 who = home_p11
         if team == "away":
+            teamname = team_name_away
             if whonumber < 1:
                 who = away_p1
             elif 1 < whonumber < 7:
@@ -296,6 +310,12 @@ async def simulate(id, vs, event):
         pfile.close()
 
     while i < minutes:
+
+        ## Recheck team value (can change during game)
+        home_bonus = round(home_ovr - away_ovr)
+        ## Give a balance between the 2 teams (if same OVR : 1-50 and 51-100 to find who makes the action)
+        ratio = round(50 + 2 * home_bonus)
+
         i += 1
         x = randint(1, minutes)
         hvalue = home_scorers[i - 1]
@@ -305,9 +325,9 @@ async def simulate(id, vs, event):
         if x < nb_actions:
             who_attack = randint(1, 100)
             if who_attack > ratio:
-                who, what, team = whoscore("away")
+                who, what, team = get_actions("away")
             else:
-                who, what, team = whoscore("home")
+                who, what, team = get_actions("home")
 
             if what == "Goal":
 
@@ -354,12 +374,19 @@ async def simulate(id, vs, event):
     elif (int(score_away + score_home) <= 2) and (note > 3):
         note = note - 1
     matchinfo.append(note)
+
     ### Commentary review
     if commentary[minutes] == "---":
         if score_home > score_away:
-            commentary[minutes] = "At home, **" + team_name_home + "** wins the game against " + team_name_away + "."
+            comment = random.choice(commentaries['win'])
+            comment = comment.replace("TEAM1", team_name_home)
+            comment = comment.replace("TEAM2", team_name_away)
+            commentary[minutes] = comment
         elif score_home < score_away:
-            commentary[minutes] = "**" + team_name_away + "** makes a great match and overcomes " + team_name_home + "."
+            comment = random.choice(commentaries['win'])
+            comment = comment.replace("TEAM1", team_name_away)
+            comment = comment.replace("TEAM2", team_name_home)
+            commentary[minutes] = comment
         else:
             commentary[
                 minutes] = "What a game !\n But " + team_name_home + " and " + team_name_away + " " + "could not tell the difference"

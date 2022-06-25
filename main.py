@@ -211,6 +211,10 @@ async def game(ctx):
                         global skip
                         skip = 0
 
+                        viewmatch = View()
+                        viewmatch.add_item(button_finishmatch)
+                        viewmatch.add_item(button_team)
+
                         vs = interaction.data['custom_id']
                         if "event_" in vs:
                             events = vs.split(",")[0]
