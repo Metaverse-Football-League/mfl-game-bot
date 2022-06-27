@@ -6,12 +6,14 @@ f_players = "players.csv"
 
 
 class Player:
-    def __init__(self, displayName, ovr, pos, teamid, form, number, isYellowCard, isRedCard):
+    def __init__(self, displayName, ovr, pos, teamid, nat, rarity, form, number, isYellowCard, isRedCard):
         self.displayName = displayName
-        self.form = form
+        self.form = int(form)
         self.number = number
+        self.nat = nat
         self.pos = pos
-        self.ovr = ovr
+        self.ovr = int(ovr)
+        self.rarity = rarity
         self.teamid = teamid
         self.isYellowCard = isYellowCard
         self.isRedCard = isRedCard
@@ -80,16 +82,6 @@ async def get(id):
     with open(f_players, "r+") as pfile:
         playerfile = pfile.readlines()
         playerlist = []
-        for line in playerfile:
-            if id in line:
-                playerlist.append(line)
-        return playerlist
-
-
-async def get2(id):
-    with open(f_players, "r+") as pfile:
-        playerfile = pfile.readlines()
-        playerlist = []
         i = 0
         for line in playerfile:
             if id in line:
@@ -97,15 +89,30 @@ async def get2(id):
                 ovr = line.split(",")[1]
                 pos = line.split(",")[2]
                 teamid = line.split(",")[3]
+                nat = line.split(",")[4]
+                rarity = line.split(",")[6]
                 isYellowCard = False
                 isRedCard = False
                 form = 3
-                myplayer = Player(displayName, ovr, pos, teamid, form, i, isYellowCard, isRedCard)
-                print(type(myplayer))
+                myplayer = Player(displayName, ovr, pos, teamid, nat, rarity, form, i, isYellowCard, isRedCard)
                 i += 1
                 playerlist.append(myplayer)
         return playerlist
 
+async def check(id, name):
+    with open(f_players, "r+") as pfile:
+        playerfile = pfile.readlines()
+        i = 0
+        alreadyinTeam = False
+        for line in playerfile:
+            if alreadyinTeam == True:
+                continue
+            if id in line:
+                displayName = line.split(",")[0]
+                if displayName == name:
+                    alreadyinTeam = True
+
+        return alreadyinTeam
 
 async def generate(i):
     displayName = names.get_full_name(gender='male')
@@ -170,40 +177,40 @@ async def scout(id):
     ## Case of similar posts
 
     if number in (3, 4):
-        ovr3 = p_info[3].split(",")[1]
-        ovr4 = p_info[4].split(",")[1]
+        ovr3 = p_info[3].ovr
+        ovr4 = p_info[4].ovr
         if ovr3 < ovr4:
-            old_name = p_info[3].split(",")[0]
-            old_ovr = p_info[3].split(",")[1]
-            old_pos = p_info[3].split(",")[2].upper()
-            old_nat = p_info[3].split(",")[4]
+            old_name = p_info[3].displayName
+            old_ovr = p_info[3].ovr
+            old_pos = p_info[3].pos.upper()
+            old_nat = p_info[3].nat
             number = 3
         else:
-            old_name = p_info[4].split(",")[0]
-            old_ovr = p_info[4].split(",")[1]
-            old_pos = p_info[4].split(",")[2].upper()
-            old_nat = p_info[4].split(",")[4]
+            old_name = p_info[4].displayName
+            old_ovr = p_info[4].ovr
+            old_pos = p_info[4].pos.upper()
+            old_nat = p_info[4].nat
             number = 4
     elif number in (6, 7):
-        ovr6 = p_info[6].split(",")[1]
-        ovr7 = p_info[7].split(",")[1]
+        ovr6 = p_info[6].ovr
+        ovr7 = p_info[7].ovr
         if ovr6 < ovr7:
-            old_name = p_info[6].split(",")[0]
-            old_ovr = p_info[6].split(",")[1]
-            old_pos = p_info[6].split(",")[2].upper()
-            old_nat = p_info[6].split(",")[4]
+            old_name = p_info[6].displayName
+            old_ovr = p_info[6].ovr
+            old_pos = p_info[6].pos.upper()
+            old_nat = p_info[6].nat
             number = 6
         else:
-            old_name = p_info[7].split(",")[0]
-            old_ovr = p_info[7].split(",")[1]
-            old_pos = p_info[7].split(",")[2].upper()
-            old_nat = p_info[7].split(",")[4]
+            old_name = p_info[7].displayName
+            old_ovr = p_info[7].ovr
+            old_pos = p_info[7].pos.upper()
+            old_nat = p_info[7].nat
             number = 7
     else:
-        old_name = p_info[number].split(",")[0]
-        old_ovr = p_info[number].split(",")[1]
-        old_pos = p_info[number].split(",")[2].upper()
-        old_nat = p_info[number].split(",")[4]
+        old_name = p_info[number].displayName
+        old_ovr = p_info[number].ovr
+        old_pos = p_info[number].pos.upper()
+        old_nat = p_info[number].nat
 
     playerinfo = []
     playerinfo.append(number)
@@ -219,7 +226,7 @@ async def scout(id):
         title=name, description="You find a new player !", color=default_color)
     embeddescription = ":flag_" + nat + ":`" + str(
         i) + " - " + pos + " " + ovr + "` " + rarity_flag + " *" + name + "*\n"
-    oldplayer = ":flag_" + old_nat + ":`" + str(i) + " - " + old_pos + " " + old_ovr + "` ~~" + old_name + "~~\n"
+    oldplayer = ":flag_" + old_nat + ":`" + str(i) + " - " + old_pos + " " + str(old_ovr) + "` ~~" + old_name + "~~\n"
 
     embedplayer.add_field(name="New player", value=embeddescription)
     embedplayer.add_field(name="Player you will remove", value=oldplayer, inline=False)

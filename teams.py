@@ -41,30 +41,30 @@ async def get_All(id):
             if i == 0:
                 i += 1
 
-            name = p_info[i].split(",")[0]
-            ovr = p_info[i].split(",")[1]
-            pos = p_info[i].split(",")[2].upper()
-            nat = p_info[i].split(",")[4]
-            nft = p_info[i].split(",")[5]
-            rarity = p_info[i].split(",")[6]
+            name = p_info[i].displayName
+            ovr = p_info[i].ovr
+            pos = p_info[i].pos.upper()
+            nat = p_info[i].nat
+            #nft = p_info[i].split(",")[5]
+            rarity = p_info[i].rarity
             rarity_flag = "⚫"
-            if nft == "1":
-                if rarity == "common":
-                    rarity_flag = "⚪"
-                elif rarity == "uncommon":
-                    rarity_flag = "🟢"
-                elif rarity == "rare":
-                    rarity_flag = "🔵"
-                elif rarity == "legend":
-                    rarity_flag = "🟣"
+
+            if rarity == "common":
+                rarity_flag = "⚪"
+            elif rarity == "uncommon":
+                rarity_flag = "🟢"
+            elif rarity == "rare":
+                rarity_flag = "🔵"
+            elif rarity == "legend":
+                rarity_flag = "🟣"
 
             if len(pos) == 3:
-                embeddescription = embeddescription + ":flag_" + nat + ":`" + pos + " " + ovr + "`" + rarity_flag + " *" + name + "*\n"
+                embeddescription = embeddescription + ":flag_" + nat + ":`" + pos + " " + str(ovr) + "`" + rarity_flag + " *" + name + "*\n"
             else:
-                embeddescription = embeddescription + ":flag_" + nat + ":`" + pos + "  " + ovr + "`" + rarity_flag + " *" + name + "*\n"
+                embeddescription = embeddescription + ":flag_" + nat + ":`" + pos + "  " + str(ovr) + "`" + rarity_flag + " *" + name + "*\n"
             i += 1
 
-        man_name = p_info[0].split(",")[0]
+        man_name = p_info[0].displayName
         embedmanager = "*" + man_name + "*"
         embedteam.add_field(name="Players", value=embeddescription)
         embedteam.add_field(name="Coach", value=embedmanager, inline=False)

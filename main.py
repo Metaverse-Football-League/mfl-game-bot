@@ -153,32 +153,32 @@ async def game(ctx):
                     button_ev5 = None
 
                     for event in eventlist:
-                        eventcode = event.split(",")[0]
-                        eventname = event.split(",")[1]
-                        eventdesc = event.split(",")[2]
-                        eventstatus = event.split(",")[3]
-                        eventkind = event.split(",")[4]
-                        eventopponent = event.split(",")[5]
+                        code = event.code
+                        name = event.name
+                        desc = event.desc
+                        status = event.status
+                        kind = event.kind
+                        opponent = event.opponent
 
                         if i == 1:
-                            button_ev1 = Button(label=eventname, style=discord.ButtonStyle.blurple,
-                                                    row=1, custom_id=eventcode+","+eventopponent)
+                            button_ev1 = Button(label=name, style=discord.ButtonStyle.blurple,
+                                                    row=1, custom_id=code+","+opponent)
                             viewopponents.add_item(button_ev1)
                         elif i == 2:
-                            button_ev2 = Button(label=eventname, style=discord.ButtonStyle.blurple,
-                                                    row=1, custom_id=eventcode+","+eventopponent)
+                            button_ev2 = Button(label=name, style=discord.ButtonStyle.blurple,
+                                                    row=1, custom_id=code+","+opponent)
                             viewopponents.add_item(button_ev2)
                         elif i == 3:
-                            button_ev3 = Button(label=eventname, style=discord.ButtonStyle.blurple,
-                                                    row=1, custom_id=eventcode+","+eventopponent)
+                            button_ev3 = Button(label=name, style=discord.ButtonStyle.blurple,
+                                                    row=1, custom_id=code+","+opponent)
                             viewopponents.add_item(button_ev3)
                         elif i == 4:
-                            button_ev4 = Button(label=eventname, style=discord.ButtonStyle.blurple,
-                                                    row=1, custom_id=eventcode+","+eventopponent)
+                            button_ev4 = Button(label=name, style=discord.ButtonStyle.blurple,
+                                                    row=1, custom_id=code+","+opponent)
                             viewopponents.add_item(button_ev4)
                         elif i == 5:
-                            button_ev5 = Button(label=eventname, style=discord.ButtonStyle.blurple,
-                                                    row=1, custom_id=eventcode+","+eventopponent)
+                            button_ev5 = Button(label=name, style=discord.ButtonStyle.blurple,
+                                                    row=1, custom_id=code+","+opponent)
                             viewopponents.add_item(button_ev5)
                         i += 1
 
@@ -357,10 +357,31 @@ async def game(ctx):
                             ovr = player.split(",")[2]
                             name = player.split(",")[3]
                             rarity = player.split(",")[4]
-                            embedscout = await nfts.scout(user_id, name, ovr, pos, nat, rarity)
 
-                            await showmenu.edit_original_message(view=viewscout, embed=embedscout)
-                            await interaction.response.defer()
+                            alreadyinTeam = await players.check(user_id, name)
+
+                            if alreadyinTeam == True:
+
+                                default_color = 0xffff00
+                                embedscout = discord.Embed(
+                                    title="Error", description="This player is already in your team", color=default_color)
+
+                                view = View()
+                                view.add_item(button_team)
+                                view.add_item(button_scout)
+                                view.add_item(button_play)
+                                view.add_item(button_events)
+                                view.add_item(button_leaderboard)
+                                view.add_item(button_nfts)
+
+                                await showmenu.edit_original_message(view=view, embed=embedscout)
+                                await interaction.response.defer()
+
+                            else:
+                                embedscout = await nfts.scout(user_id, name, ovr, pos, nat, rarity)
+
+                                await showmenu.edit_original_message(view=viewscout, embed=embedscout)
+                                await interaction.response.defer()
 
                     if b1:
                         b1.callback = button_scoutnft_callback
@@ -437,33 +458,32 @@ async def game(ctx):
                     button_ev5 = None
 
                     for event in eventlist:
-                        eventcode = event.split(",")[0]
-                        eventname = event.split(",")[1]
-                        print(eventname)
-                        eventdesc = event.split(",")[2]
-                        eventstatus = event.split(",")[3]
-                        eventkind = event.split(",")[4]
-                        eventopponent = event.split(",")[5]
+                        code = event.code
+                        name = event.name
+                        desc = event.desc
+                        status = event.status
+                        kind = event.kind
+                        opponent = event.opponent
 
                         if i == 1:
-                            button_ev1 = Button(label=eventname, style=discord.ButtonStyle.blurple,
-                                                    row=2, custom_id=eventcode+","+eventopponent)
+                            button_ev1 = Button(label=name, style=discord.ButtonStyle.blurple,
+                                                    row=2, custom_id=code+","+opponent)
                             viewlead.add_item(button_ev1)
                         elif i == 2:
-                            button_ev2 = Button(label=eventname, style=discord.ButtonStyle.blurple,
-                                                    row=2, custom_id=eventcode+","+eventopponent)
+                            button_ev2 = Button(label=name, style=discord.ButtonStyle.blurple,
+                                                    row=2, custom_id=code+","+opponent)
                             viewlead.add_item(button_ev2)
                         elif i == 3:
-                            button_ev3 = Button(label=eventname, style=discord.ButtonStyle.blurple,
-                                                    row=2, custom_id=eventcode+","+eventopponent)
+                            button_ev3 = Button(label=name, style=discord.ButtonStyle.blurple,
+                                                    row=2, custom_id=code+","+opponent)
                             viewlead.add_item(button_ev3)
                         elif i == 4:
-                            button_ev4 = Button(label=eventname, style=discord.ButtonStyle.blurple,
-                                                    row=2, custom_id=eventcode+","+eventopponent)
+                            button_ev4 = Button(label=name, style=discord.ButtonStyle.blurple,
+                                                    row=2, custom_id=code+","+opponent)
                             viewlead.add_item(button_ev4)
                         elif i == 5:
-                            button_ev5 = Button(label=eventname, style=discord.ButtonStyle.blurple,
-                                                    row=2, custom_id=eventcode+","+eventopponent)
+                            button_ev5 = Button(label=name, style=discord.ButtonStyle.blurple,
+                                                    row=2, custom_id=code+","+opponent)
                             viewlead.add_item(button_ev5)
                         i += 1
 
@@ -501,13 +521,13 @@ async def game(ctx):
                     title="Events", description="Below the list of current events", color=default_color)
 
                 for event in eventlist:
-                    eventcode = event.split(",")[0]
-                    eventname = event.split(",")[1]
-                    eventdesc = event.split(",")[2]
-                    eventstatus = event.split(",")[3]
-                    eventkind = event.split(",")[4]
+                    code = event.code
+                    name = event.name
+                    desc = event.desc
+                    status = event.status
+                    kind = event.kind
 
-                    embedevent.add_field(name=eventname, value=eventdesc)
+                    embedevent.add_field(name=name, value=desc)
 
                 await showmenu.edit_original_message(view=view, embed=embedevent)
                 await interaction.response.defer()
