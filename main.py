@@ -56,7 +56,6 @@ async def create(ctx, name):
             user = ctx.interaction.user
             user_id = str(user.id)
             if user.id > 1000000:
-                print(user)
                 username = user.name
             else:
                 username = "BOT"
@@ -77,7 +76,6 @@ async def create(ctx, name):
 
 @bot.command(name='view')
 async def change(ctx, user: discord.User):
-    print(ctx.channel.id)
     if ctx.channel.id in gamechan:
         embedteam = await teams.get_All(str(user.id))
         await ctx.respond(embed=embedteam, ephemeral=False)
@@ -93,7 +91,7 @@ async def match(ctx, user1: discord.User, user2: discord.User):
         embedmenu = discord.Embed(
             title='Discord Football Game', color=default_color)
 
-        showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=True)
+        showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=False)
 
         for x in match:
             #await showmenu.edit(view=view, embed=x)
@@ -489,7 +487,6 @@ async def game(ctx):
 
                 async def button_leads_callback(interaction):
                     event = interaction.data['custom_id'].split(",")[0]
-                    print(event)
 
                     embedlead = await leaderboards.get(event)
 

@@ -25,18 +25,19 @@ class Score:
         self.away = away
 
 
-class Goals:
-    def __init__(self, player, team, minute):
+class Event:
+    def __init__(self, kind, player, team, minute):
+        self.kind = kind
         self.player = player
         self.team = team
         self.minute = minute
 
 
 class MatchEvent:
-    def __init__(self, teams: Teams, score: Score, goals, commentary, minutes, note):
+    def __init__(self, teams: Teams, score: Score, event, commentary, minutes, note):
         self.teams = teams
         self.score = score
-        self.goals = goals
+        self.event = event
         self.commentary = commentary
         self.minutes = minutes
         self.note = note
@@ -114,7 +115,6 @@ async def simulate(id, vs, event):
     home_ovr = round(sum(home_ovr_list) / len(home_ovr_list))
 
     ### Matchs initialisation
-    commentary = []
     score_home = 0
     score_away = 0
     score = Score(score_home, score_away)
@@ -148,10 +148,9 @@ async def simulate(id, vs, event):
     matchevents = []
     eventlist = []
     goal_scorers = []
-    goal = "\u200b"
+    curevent = "\u200b"
 
-    commentary.append("The match begins !")
-    commentary2 = "The match begins !"
+    commentary = "The match begins !"
 
     def get_actions(team):
         ## Define scoring probabilities
@@ -222,17 +221,18 @@ async def simulate(id, vs, event):
             success = 0
             who.ovr = who.ovr + 2
         elif what > 2:
-            what = "Yellow Card"
-            success = 1
+            what = "Fault"
+            success = 0
             who.ovr = who.ovr - 10
         else:
-            what = "Red Card"
+            what = "Fault"
             success = 1
             who.ovr = 0
 
         return whoplay, what, team, success
 
     def register_goals(player, team):
+        print(event)
         # Update f_goals
         if event == "no":
             pfile = open(f_goals, "r+")
@@ -277,16 +277,14 @@ async def simulate(id, vs, event):
 
     #### Start of the simulation ###############
 
-    matchevent = MatchEvent(teamsname, score, goal, commentary2, i, note)
+    matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
     eventlist.append(matchevent)
 
     while i < minutes:
 
-        print(str(score.home) + " " + str(score_away))
-
         ## Recheck team value (can change during game)
         home_ovr_list = []
-        goal = "\u200b"
+        curevent = "\u200b"
 
         for x in playershome:
             if x.pos != "COACH":
@@ -319,8 +317,8 @@ async def simulate(id, vs, event):
 
             if what == "Shoot":
 
-                commentary2 = whoplay+" is in a good position and shoot..."
-                matchevent = MatchEvent(teamsname, score, goal, commentary2, i, note)
+                commentary = whoplay + " is in a good position and shoot..."
+                matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
                 eventlist.append(matchevent)
 
                 if success == 1:
@@ -328,44 +326,54 @@ async def simulate(id, vs, event):
                     if team == "home":
                         score_home += 1
                         score = Score(score_home, score_away)
-                        goal = Goals(whoplay, teamsname.home, minutes)
-                        commentary.append("What a goal for " + team_name_home + " by " + whoplay)
-                        commentary2 = "What a goal for " + teamsname.home + " by " + whoplay
+                        curevent = Event("goal", whoplay, teamsname.home, i)
+                        commentary = "What a goal for " + teamsname.home + " by **" + whoplay + "**"
                     else:
                         score_away += 1
                         score = Score(score_home, score_away)
-                        goal = Goals(whoplay, teamsname.away, minutes)
-                        commentary.append("What a goal for " + team_name_away + " by " + whoplay)
-                        commentary2 = "What a goal for " + teamsname.away + " by " + whoplay
+                        curevent = Event("goal", whoplay, teamsname.away, i)
+                        commentary = "What a goal for " + teamsname.away + " by **" + whoplay + "**"
                 else:
                     if team == "home":
-                        commentary.append(
-                            "Beautiful action for " + team_name_home + " but " + whoplay + " missed the shoot")
-                        commentary2 = "Beautiful action for " + team_name_home + " but " + whoplay + " missed the shoot"
+                        commentary = "Beautiful action for " + team_name_home + " but " + whoplay + " missed the shoot"
                     else:
-                        commentary.append(
-                            "Beautiful action for " + team_name_away + " but " + whoplay + " missed the shoot")
-                        commentary2 = "Beautiful action for " + team_name_away + " but " + whoplay + " missed the shoot"
+                        commentary = "Beautiful action for " + team_name_away + " but " + whoplay + " missed the shoot"
+
+            elif what == "Fault":
+                print("Fault")
+                commentary = "What a dangerous tacle from " + teamsname.home + " by **" + whoplay + "**"
+                if success == 1:
+                    if team == "home":
+                        score_home += 1
+                        curevent = Event("redcard", whoplay, teamsname.home, i)
+                        commentary = "What a goal for " + teamsname.home + " by **" + whoplay + "**"
+                    else:
+                        score_away += 1
+                        curevent = Event("redcard", whoplay, teamsname.away, i)
+                        commentary = "What a goal for " + teamsname.away + " by **" + whoplay + "**"
+                elif success == 0:
+                    if team == "home":
+                        curevent = Event("yelcard", whoplay, teamsname.home, i)
+                        commentary = team_name_home + " : It's a yellow card for " + whoplay
+                    else:
+                        curevent = Event("yel", whoplay, teamsname.away, i)
+                        commentary = team_name_away + " : It's a yellow card for " + whoplay
 
             elif what == "Bonus":
                 if team == "home":
-                    commentary.append(team_name_home + " is dominant")
-                    commentary2 = teamsname.home + " is dominant"
+                    commentary = teamsname.home + " is dominant"
                 else:
-                    commentary.append(team_name_away + " is dominant")
-                    commentary2 = teamsname.away + " is dominant"
+                    commentary = teamsname.away + " is dominant"
 
             else:
-                commentary.append("To write")
-                commentary2 = "---"
+                commentary = "---"
 
         else:
-            commentary.append("---")
-            commentary2 = "---"
+            commentary = "---"
 
         matchevents.append(str(i) + "," + str(score_home) + "," + str(score_away))
 
-        matchevent = MatchEvent(teamsname, score, goal, commentary2, i, note)
+        matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
         eventlist.append(matchevent)
 
     ### Note review
@@ -377,26 +385,25 @@ async def simulate(id, vs, event):
         note = note - 1
 
     ### Commentary review
-    if commentary[minutes] == "---":
-        if score_home > score_away:
-            comment = random.choice(commentaries['win'])
-            comment = comment.replace("TEAM1", team_name_home)
-            comment = comment.replace("TEAM2", team_name_away)
-            commentary[minutes] = comment
-            commentary2 = comment
-        elif score_home < score_away:
-            comment = random.choice(commentaries['win'])
-            comment = comment.replace("TEAM1", team_name_away)
-            comment = comment.replace("TEAM2", team_name_home)
-            commentary[minutes] = comment
-            commentary2 = comment
 
-        else:
-            commentary[
-                minutes] = "What a game !\n But " + team_name_home + " and " + team_name_away + " " + "could not make the difference"
-            commentary2 = "What a game !\n But " + team_name_home + " and " + team_name_away + " " + "could not make the difference"
+    if score_home > score_away:
+        comment = random.choice(commentaries['win'])
+        comment = comment.replace("TEAM1", team_name_home)
+        comment = comment.replace("TEAM2", team_name_away)
+        commentary = comment
+    elif score_home < score_away:
+        comment = random.choice(commentaries['win'])
+        comment = comment.replace("TEAM1", team_name_away)
+        comment = comment.replace("TEAM2", team_name_home)
+        commentary = comment
 
-    matchevent = MatchEvent(teamsname, score, goal, commentary2, i, note)
+    else:
+        commentary = "What a game !\n But " + team_name_home + " and " + team_name_away + " " + "could not make the difference"
+
+    # Goal reset
+    curevent = "\u200b"
+
+    matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
     eventlist.append(matchevent)
 
     return eventlist
@@ -431,12 +438,14 @@ async def play(id, vs, events):
     embedlist = []
 
     nogoal = "\u200b"
-    hvalue = nogoal
-    avalue = nogoal
+    hgoal = nogoal
+    agoal = nogoal
+    hcard = nogoal
+    acard = nogoal
+
 
     for x in eventlist:
 
-        print(str(x.minutes)+ " "+x.commentary)
         minutes = x.minutes
         if int(minutes) == 1:
             description = description_start
@@ -454,18 +463,32 @@ async def play(id, vs, events):
         embedscore.add_field(name=away_name, value=str(away_score), inline=True)
         embedscore.add_field(name="\u200b", value="**Goals**", inline=True)
 
-        goals = x.goals
+        goals = x.event
         #agoals = away_scorers[int(minutes)].split(',')
 
         if type(goals) != str:
-            if goals.team == home_name:
-                hvalue += goals.player + "\n"
-            elif goals.team == away_name:
-                avalue += goals.player + "\n"
+            if goals.kind == "goal":
+                if goals.team == home_name:
+                    hgoal += goals.player + " " +str(goals.minute) + "'\n"
+                elif goals.team == away_name:
+                    agoal += goals.player + " " +str(goals.minute) + "'\n"
+            elif goals.kind == "yelcard":
+                if goals.team == home_name:
+                    hcard += "🟨 "+goals.player + " " +str(goals.minute) + "'\n"
+                elif goals.team == away_name:
+                    acard += "🟨 "+goals.player + " " +str(goals.minute) + "'\n"
+            elif goals.kind == "redcard":
+                if goals.team == home_name:
+                    hcard += "🟥 "+ goals.player + " " +str(goals.minute) + "'\n"
+                elif goals.team == away_name:
+                    acard += "🟥 "+ goals.player + " " +str(goals.minute) + "'\n"
 
 
-        embedscore.add_field(name="\u200b", value=hvalue, inline=True)
-        embedscore.add_field(name="\u200b", value=avalue, inline=True)
+        embedscore.add_field(name="\u200b", value=hgoal, inline=True)
+        embedscore.add_field(name="\u200b", value=agoal, inline=True)
+        embedscore.add_field(name="\u200b", value="**Events**", inline=True)
+        embedscore.add_field(name="\u200b", value=hcard, inline=True)
+        embedscore.add_field(name="\u200b", value=acard, inline=True)
         embedscore.add_field(name="Commentary", value=x.commentary, inline=False)
         embedscore.add_field(name="Match Note", value=note, inline=False)
 
