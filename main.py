@@ -258,7 +258,7 @@ async def game(ctx):
                                 break
 
                             await showmenu.edit_original_message(view=viewmatch, embed=x)
-                            await asyncio.sleep(1)
+                            await asyncio.sleep(3)
 
                             try:
                                 await interaction.response.defer()
@@ -582,6 +582,8 @@ async def game(ctx):
                 pos = playersinfos[2]
                 ovr = playersinfos[3].replace("`", "")
                 name = playersinfos[5] + " " + playersinfos[6]
+                if len(playersinfos) > 6:
+                    name = name + " " + playersinfos[7]
 
                 name = name.replace("*", "")
                 await players.recruit(user_id, num, name, ovr, pos, nat)

@@ -324,17 +324,11 @@ async def simulate(id, vs, event):
                             commentary = commentaries.getCommentary('yellowCard',
                                                                     {'PLAYER_TEAM': whoTeam, "PLAYER_NAME": whoplay})
                         else:
-                            success = 2
-                    if success == 2:
-                        print(who.displayName+" RC")
-                        who.ovr = 0
-                        who.isRedCard = True
-                        if team == "home":
-                            score_home += 1
-                        else:
-                            score_away += 1
-                        curevent = Event("redcard", whoplay, whoTeam, i)
-                        commentary = commentaries.getCommentary('redCard', {'PLAYER_TEAM': whoTeam, "PLAYER_NAME": whoplay})
+                            who.ovr = 0
+                            who.isRedCard = True
+                            curevent = Event("redcard", whoplay, whoTeam, i)
+                            commentary = commentaries.getCommentary('redCard',
+                                                                    {'PLAYER_TEAM': whoTeam, "PLAYER_NAME": whoplay})
 
                 elif what == "Bonus":
                     commentary = commentaries.getCommentary('dominant',
@@ -360,26 +354,8 @@ async def simulate(id, vs, event):
     elif (int(score_away + score_home) <= 2) and (note > 3):
         note = note - 1
 
-    ### Commentary review
-    """
-    if score_home > score_away:
-        comment = random.choice(commentaries['win'])
-        comment = comment.replace("TEAM1", team_name_home)
-        comment = comment.replace("TEAM2", team_name_away)
-        commentary = comment
-    elif score_home < score_away:
-        comment = random.choice(commentaries['win'])
-        comment = comment.replace("TEAM1", team_name_away)
-        comment = comment.replace("TEAM2", team_name_home)
-        commentary = comment
-        
-    else:
-        commentary = "What a game !\n But " + team_name_home + " and " + team_name_away + " " + "could not make the difference"
-    """
     commentaryKey = 'homeWin' if score_home > score_away else "awayWin" if score_home < score_away else "draw"
     commentary = commentaries.getCommentary(commentaryKey, {'HOME_TEAM': team_name_home, 'AWAY_TEAM': team_name_away})
-
-
 
     # Goal reset
     curevent = "\u200b"
@@ -423,9 +399,31 @@ async def play(id, vs, events):
     agoal = nogoal
     hcard = nogoal
     acard = nogoal
+    lastcommentaries = "\u200b"
 
+    i = 0
+
+    oldcommentaries = []
 
     for x in eventlist:
+
+        lastevent1 = eventlist[i - 1].commentary
+        minutes1 = eventlist[i - 1].minutes
+
+        commentary = x.commentary
+
+        if i > 1:
+            if lastevent1 != "---":
+                oldcommentaries.append("("+str(minutes1)+"') " + lastevent1)
+
+        if len(oldcommentaries) > 2:
+            lastcommentaries = oldcommentaries[-1] + "\n" + oldcommentaries[-2] + "\n" + oldcommentaries[-3]
+        elif len(oldcommentaries) > 1:
+            lastcommentaries = oldcommentaries[-1] + "\n" + oldcommentaries[-2]
+        elif len(oldcommentaries) > 0:
+            lastcommentaries = oldcommentaries[-1]
+
+        i += 1
 
         minutes = x.minutes
         if int(minutes) == 1:
@@ -442,10 +440,12 @@ async def play(id, vs, events):
         embedscore.add_field(name="MIN", value=str(minutes) + "'", inline=True)
         embedscore.add_field(name=home_name, value=str(home_score), inline=True)
         embedscore.add_field(name=away_name, value=str(away_score), inline=True)
+        embedscore.add_field(name="Commentary", value=commentary, inline=False)
+        if lastcommentaries := "\u200b":
+            embedscore.add_field(name="\u200b", value=lastcommentaries, inline=False)
         embedscore.add_field(name="\u200b", value="**Goals**", inline=True)
 
         goals = x.event
-        #agoals = away_scorers[int(minutes)].split(',')
 
         if type(goals) != str:
             if goals.kind == "goal":
@@ -469,8 +469,8 @@ async def play(id, vs, events):
         embedscore.add_field(name="\u200b", value="**Events**", inline=True)
         embedscore.add_field(name="\u200b", value=hcard, inline=True)
         embedscore.add_field(name="\u200b", value=acard, inline=True)
-        embedscore.add_field(name="Commentary", value=x.commentary, inline=False)
         embedscore.add_field(name="Match Note", value=note, inline=False)
 
         embedlist.append(embedscore)
+
     return embedlist
