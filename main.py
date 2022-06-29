@@ -1,7 +1,8 @@
 import asyncio
 import discord
 from discord.ui import View, Button
-from dotenv import load_dotenv
+from discord.ext import commands
+#from dotenv import load_dotenv
 from random import randint, sample
 import events
 import leaderboards
@@ -9,6 +10,7 @@ import matchengine
 import nfts
 import players
 import teams
+import cooldown
 
 ### Prerequisites
 # Discord2 Python library (py-cord)
@@ -26,7 +28,7 @@ f_goals = "goals.csv"
 ## Event (name, desc, status)
 f_events = "events.csv"
 
-load_dotenv(dotenv_path="config")
+#load_dotenv(dotenv_path="config")
 intents = discord.Intents.all()
 
 ### Set prefix
@@ -36,6 +38,7 @@ bot = discord.Bot()
 ### Discord configurations ###
 gamechan = [983723647002882058, 989056372198998076]
 adminid = "593086239024873483"
+cd_button = commands.cooldown(1, 60, commands.BucketType.user)
 
 ########################################################################################################
 ## START OF PROCESS ##
@@ -75,6 +78,7 @@ async def create(ctx, name):
 
 
 @bot.command(name='view')
+@commands.cooldown(1, 60, commands.BucketType.user)
 async def change(ctx, user: discord.User):
     if ctx.channel.id in gamechan:
         embedteam = await teams.get_All(str(user.id))
@@ -98,6 +102,23 @@ async def match(ctx, user1: discord.User, user2: discord.User):
             await showmenu.edit_original_message(view=view, embed=x)
             await asyncio.sleep(1)
 
+@bot.command(name='versus', description="Start a match !")
+async def match(ctx, user2: discord.User):
+    if ctx.channel.id in gamechan:
+        user1 = ctx.interaction.user
+        events = "no"
+        match = await matchengine.play(str(user1.id), str(user2.id), events)
+        view = View()
+        default_color = 0x00ff00
+        embedmenu = discord.Embed(
+            title='Discord Football Game', color=default_color)
+
+        showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=False)
+
+        for x in match:
+            #await showmenu.edit(view=view, embed=x)
+            await showmenu.edit_original_message(view=view, embed=x)
+            await asyncio.sleep(1)
 
 #### Menu display
 @bot.command(name='game', description='Access to the menu, build your team and compete...')
@@ -123,8 +144,6 @@ async def game(ctx):
 
         viewdefault = View()
         viewdefault.add_item(button_team)
-        viewdefault.add_item(button_scout)
-        viewdefault.add_item(button_play)
         viewdefault.add_item(button_events)
         viewdefault.add_item(button_leaderboard)
         viewdefault.add_item(button_nfts)
@@ -141,6 +160,7 @@ async def game(ctx):
                 eventlist = await events.get("vs")
 
                 viewopponents = View()
+
                 i = 1
 
                 if eventlist[0] != "":
@@ -209,6 +229,7 @@ async def game(ctx):
                         global skip
                         skip = 0
 
+                        cooldown.add_cd_match(user_name)
                         viewmatch = View()
                         viewmatch.add_item(button_finishmatch)
                         viewmatch.add_item(button_team)
@@ -262,13 +283,30 @@ async def game(ctx):
             if str(interaction.user) == user_name:
                 embedteam = await teams.get_All(user_id)
 
+                check_cooldown = cooldown.check(user_name)
+
                 view = View()
                 view.add_item(button_team)
-                view.add_item(button_scout)
-                view.add_item(button_play)
                 view.add_item(button_events)
                 view.add_item(button_leaderboard)
                 view.add_item(button_nfts)
+
+                description = ""
+                if "scout" in check_cooldown.keys():
+                    end_cooldown = check_cooldown["scout"]
+                    description = description + "Scout until "+end_cooldown+" \n"
+                else:
+                    view.add_item(button_scout)
+
+                if "match" in check_cooldown.keys():
+                    end_cooldown = check_cooldown["match"]
+                    description = description + "Match until " + end_cooldown
+
+                else:
+                    view.add_item(button_play)
+
+                if description != "":
+                    embedteam.add_field(name="Cooldown", value=description)
 
                 await showmenu.edit_original_message(view=view, embed=embedteam)
                 await interaction.response.defer()
@@ -424,6 +462,7 @@ async def game(ctx):
 
         async def button_scout_callback(interaction):
             if str(interaction.user) == user_name:
+                cooldown.add_cd_scout(user_name)
                 viewscout = View()
                 viewscout.add_item(button_team)
                 viewscout.add_item(button_recruit)
@@ -437,8 +476,6 @@ async def game(ctx):
 
                 viewlead = View()
                 viewlead.add_item(button_team)
-                viewlead.add_item(button_scout)
-                viewlead.add_item(button_play)
 
                 embedlead = await leaderboards.get(user_id)
                 eventlist = await events.get("vs")
@@ -513,6 +550,12 @@ async def game(ctx):
             if str(interaction.user) == user_name:
                 eventlist = await events.get("all")
 
+                view = View()
+                view.add_item(button_team)
+                view.add_item(button_events)
+                view.add_item(button_leaderboard)
+                view.add_item(button_nfts)
+
                 default_color = 0x00ff00
                 embedevent = discord.Embed(
                     title="Events", description="Below the list of current events", color=default_color)
@@ -575,15 +618,32 @@ async def game(ctx):
         button_team.callback = button_team_callback
         button_scout.callback = button_scout_callback
         button_recruit.callback = button_recruit_callback
-        button_letleave.callback = button_letleave_callback
+        button_letleave.callback = button_team_callback
         button_nfts.callback = button_nfts_callback
 
+        check_cooldown = cooldown.check(user_name)
+
         view = viewdefault
+        if "scout" in check_cooldown.keys():
+            end_cooldown = check_cooldown["scout"]
+            value = "Scout until " + end_cooldown
+            embedmenu.add_field(name="Cooldown", value=value)
+        else:
+            view.add_item(button_scout)
+
+        if "match" in check_cooldown.keys():
+            end_cooldown = check_cooldown["match"]
+            value = "Match until " + end_cooldown
+            embedmenu.add_field(name="Cooldown", value=value)
+
+        else:
+            view.add_item(button_play)
 
         showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=True)
-
 
 #### BOT TOKEN ########################
 with open('token.txt', 'r') as f:
     token = f.readline()
 bot.run(token)
+
+
