@@ -192,6 +192,8 @@ async def simulate(id, vs, event):
             teamname = team_name_away
             who = playersaway[indice]
 
+        print(who.displayName + " " + teamname + " " + what + " " + team + " " + str(success))
+
         return who, teamname, what, team, success
 
     def register_goals(player, team):
@@ -441,7 +443,7 @@ async def play(id, vs, events):
         embedscore.add_field(name=home_name, value=str(home_score), inline=True)
         embedscore.add_field(name=away_name, value=str(away_score), inline=True)
         embedscore.add_field(name="Commentary", value=commentary, inline=False)
-        if lastcommentaries := "\u200b":
+        if len(oldcommentaries) > 0:
             embedscore.add_field(name="\u200b", value=lastcommentaries, inline=False)
         embedscore.add_field(name="\u200b", value="**Goals**", inline=True)
 

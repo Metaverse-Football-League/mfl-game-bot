@@ -258,7 +258,7 @@ async def game(ctx):
                                 break
 
                             await showmenu.edit_original_message(view=viewmatch, embed=x)
-                            await asyncio.sleep(3)
+                            await asyncio.sleep(2)
 
                             try:
                                 await interaction.response.defer()
@@ -644,7 +644,7 @@ async def game(ctx):
         showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=True)
 
 #### BOT TOKEN ########################
-with open('token.txt', 'r') as f:
+with open('token2.txt', 'r') as f:
     token = f.readline()
 bot.run(token)
 
