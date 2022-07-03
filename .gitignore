@@ -1,0 +1,5 @@
+.idea
+.vscode/
+
+token.txt
+__pycache__/
