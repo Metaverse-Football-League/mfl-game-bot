@@ -1,6 +1,7 @@
 import discord
 import requests
 import players
+import config
 
 
 #### Show NFT players
@@ -60,10 +61,10 @@ async def get(id, indice):
 
     }
 
-    host = "https://z519wdyajg.execute-api.us-east-1.amazonaws.com/prod/users/discord/"
+    host = config["apiUrl"] + "/users/discord/"
     user_id = str(id)
-    link = host+user_id+"/players"
-    getnft = requests.get(link)
+    link = host + user_id + "/players"
+    getnft = requests.get(link, headers={"x-api-key": config["apiKey"]})
     nfts = getnft.json()
 
     i = 0

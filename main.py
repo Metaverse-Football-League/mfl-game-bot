@@ -11,6 +11,7 @@ import nfts
 import players
 import teams
 import cooldown
+import config
 
 ### Prerequisites
 # Discord2 Python library (py-cord)
@@ -643,9 +644,7 @@ async def game(ctx):
 
         showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=True)
 
-#### BOT TOKEN ########################
-with open('token2.txt', 'r') as f:
-    token = f.readline()
-bot.run(token)
+#### RUN ########################
+bot.run(config["botToken"])
 
 
