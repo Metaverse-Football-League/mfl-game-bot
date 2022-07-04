@@ -77,7 +77,6 @@ async def create(id, manager):
                 owner) + "," + nat + "," + nft + "," + rarity + ",\n")
             i += 1
 
-
 async def get(id):
     with open(f_players, "r+") as pfile:
         playerfile = pfile.readlines()
@@ -97,6 +96,26 @@ async def get(id):
                 myplayer = Player(displayName, ovr, pos, teamid, nat, rarity, form, i, isYellowCard, isRedCard)
                 i += 1
                 playerlist.append(myplayer)
+        return playerlist
+
+async def getnation(nation):
+    with open("selections/best_team_"+nation.upper(), "r+") as pfile:
+        playerfile = pfile.readlines()
+        playerlist = []
+        i = 0
+        for line in playerfile:
+            displayName = line.split(",")[0]
+            ovr = line.split(",")[1]
+            pos = line.split(",")[2]
+            teamid = line.split(",")[3]
+            nat = line.split(",")[4]
+            rarity = line.split(",")[6]
+            isYellowCard = False
+            isRedCard = False
+            form = 3
+            myplayer = Player(displayName, ovr, pos, teamid, nat, rarity, form, i, isYellowCard, isRedCard)
+            i += 1
+            playerlist.append(myplayer)
         return playerlist
 
 async def check(id, name):

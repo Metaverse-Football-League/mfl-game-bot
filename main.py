@@ -11,6 +11,7 @@ import nfts
 import players
 import teams
 import cooldown
+import nations
 from config import config
 
 ### Prerequisites
@@ -102,6 +103,23 @@ async def match(ctx, user1: discord.User, user2: discord.User):
             await showmenu.edit_original_message(view=view, embed=x)
             await asyncio.sleep(1)
 
+@bot.command(name='intmatch', description="Start a match !")
+async def intmatch(ctx, team1:str, team2:str):
+    if ctx.channel.id in gamechan:
+        events = "international"
+        match = await matchengine.play(str(team1), str(team2), events)
+        view = View()
+        default_color = 0x00ff00
+        embedmenu = discord.Embed(
+            title='Discord Football Game', color=default_color)
+
+        showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=False)
+
+        for x in match:
+            #await showmenu.edit(view=view, embed=x)
+            await showmenu.edit_original_message(view=view, embed=x)
+            await asyncio.sleep(1)
+
 @bot.command(name='versus', description="Start a match !")
 async def match(ctx, user2: discord.User):
     if ctx.channel.id in gamechan:
@@ -146,6 +164,8 @@ async def game(ctx):
         button_play = Button(label="Play", style=discord.ButtonStyle.green, custom_id="play", emoji="⚽")
         button_scout = Button(label="Scout", style=discord.ButtonStyle.green, custom_id="scout", emoji="👨")
         button_nfts = Button(label="NFT", style=discord.ButtonStyle.blurple, row=2, custom_id="nfts", emoji="🎉")
+        button_nt = Button(label="National Team", style=discord.ButtonStyle.blurple,
+                           row=2, custom_id="nt", emoji="🎌")
         button_team = Button(label="Team", style=discord.ButtonStyle.green, custom_id="team", emoji="👥")
         button_recruit = Button(label="Recruit", style=discord.ButtonStyle.green, custom_id="recruit", emoji="✅")
         button_letleave = Button(label="Return", style=discord.ButtonStyle.grey, custom_id="letleave", emoji="❌")
@@ -159,6 +179,7 @@ async def game(ctx):
         viewdefault.add_item(button_events)
         viewdefault.add_item(button_leaderboard)
         viewdefault.add_item(button_nfts)
+        viewdefault.add_item(button_nt)
 
         viewmatch = View()
         viewmatch.add_item(button_finishmatch)
@@ -302,6 +323,7 @@ async def game(ctx):
                 view.add_item(button_events)
                 view.add_item(button_leaderboard)
                 view.add_item(button_nfts)
+                view.add_item(button_nt)
 
                 description = ""
                 if "scout" in check_cooldown.keys():
@@ -421,6 +443,7 @@ async def game(ctx):
                                 view.add_item(button_events)
                                 view.add_item(button_leaderboard)
                                 view.add_item(button_nfts)
+                                view.add_item(button_nt)
 
                                 await showmenu.edit_original_message(view=view, embed=embedscout)
                                 await interaction.response.defer()
@@ -471,6 +494,185 @@ async def game(ctx):
 
                 await showmenu.edit_original_message(view=viewnfts, embed=embednfts)
                 #await interaction.response.defer()
+
+        async def button_nt_callback(interaction):
+            if str(interaction.user) == user_name:
+
+                teaminfo = await nations.check(user_id)
+
+                if teaminfo is None:
+                    embedteam = discord.Embed(
+                        title="National Team",
+                        description="You have no team to manage",
+                        color=default_color)
+                else:
+                    embedteam = await nations.getAll(teaminfo.displayName)
+
+                """
+                async def button_others_callback(interaction):
+                    if str(interaction.user) == user_name:
+                        global indice
+                        indice = 0
+
+                        await interaction.response.defer()
+
+                        playerslist = await nfts.get(user_id, indice)
+
+                        async def nftembed(playerslist, indice):
+                            default_color = 0xffff00
+                            embednfts = discord.Embed(
+                                title="Your NFTS", description="Below your squad", color=default_color)
+                            description = ""
+                            buttons = []
+                            b1 = None
+                            b2 = None
+                            b3 = None
+                            b4 = None
+                            b5 = None
+                            i = 0
+                            for x in playerslist[indice]:
+                                nation = x.split(",")[0]
+                                positions = x.split(",")[1]
+                                ovr = x.split(",")[2]
+                                displayName = x.split(",")[3]
+                                rarity = x.split(",")[4]
+
+                                if rarity == "common":
+                                    rarity_flag = "⚪"
+                                elif rarity == "uncommon":
+                                    rarity_flag = "🟢"
+                                elif rarity == "rare":
+                                    rarity_flag = "🔵"
+                                elif rarity == "legend":
+                                    rarity_flag = "🟣"
+
+                                if len(positions) == 3:
+                                    description = description + ":flag_" + nation + ":`" + positions + " " + str(
+                                        ovr) + "`" + rarity_flag + " *" + displayName + "*\n"
+                                else:
+                                    description = description + ":flag_" + nation + ":`" + positions + "  " + str(
+                                        ovr) + "`" + rarity_flag + " *" + displayName + "*\n"
+
+                                if i == 0:
+                                    b1 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1,
+                                                custom_id="Player " + str(i))
+                                    buttons.append(b1)
+                                elif i == 1:
+                                    b2 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1,
+                                                custom_id="Player " + str(i))
+                                    buttons.append(b2)
+                                elif i == 2:
+                                    b3 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1,
+                                                custom_id="Player " + str(i))
+                                    buttons.append(b3)
+                                elif i == 3:
+                                    b4 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1,
+                                                custom_id="Player " + str(i))
+                                    buttons.append(b4)
+                                elif i == 4:
+                                    b5 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1,
+                                                custom_id="Player " + str(i))
+                                    buttons.append(b5)
+                                i += 1
+
+                            embednt.add_field(name="Players", value=description)
+
+                            viewnt = View()
+                            viewnt.add_item(button_previous)
+                            viewnt.add_item(button_next)
+                            viewnt.add_item(button_team)
+
+                            async def button_replace_callback(interaction):
+                                if str(interaction.user) == user_name:
+                                    viewnt = View()
+                                    viewnt.add_item(button_nt)
+                                    viewnt.add_item(button_replace)
+
+                                    select = int(interaction.data['custom_id'].split(" ")[1])
+                                    player = playerslist[indice][select]
+                                    nat = player.split(",")[0]
+                                    pos = player.split(",")[1]
+                                    ovr = player.split(",")[2]
+                                    name = player.split(",")[3]
+                                    rarity = player.split(",")[4]
+
+                                    alreadyinTeam = await players.check(user_id, name)
+
+                                    if alreadyinTeam == True:
+
+                                        default_color = 0xffff00
+                                        embedscout = discord.Embed(
+                                            title="Error", description="This player is already in your team",
+                                            color=default_color)
+
+                                        view = View()
+                                        view.add_item(button_team)
+                                        view.add_item(button_scout)
+                                        view.add_item(button_play)
+                                        view.add_item(button_events)
+                                        view.add_item(button_leaderboard)
+                                        view.add_item(button_nfts)
+                                        view.add_item(button_nt)
+
+                                        await showmenu.edit_original_message(view=view, embed=embedscout)
+                                        await interaction.response.defer()
+
+                                    else:
+                                        embedscout = await nfts.scout(user_id, name, ovr, pos, nat, rarity)
+
+                                        await showmenu.edit_original_message(view=viewnt, embed=embedscout)
+                                        await interaction.response.defer()
+
+                            if b1:
+                                b1.callback = button_others_callback
+                            if b2:
+                                b2.callback = button_others_callback
+                            if b3:
+                                b3.callback = button_others_callback
+                            if b4:
+                                b4.callback = button_others_callback
+                            if b5:
+                                b5.callback = button_others_callback
+
+                            for x in buttons:
+                                viewnfts.add_item(x)
+
+                            return embednfts, viewnfts
+
+                        async def button_move_callback(interaction):
+                            global indice
+                            if str(interaction.user) == user_name:
+                                page = interaction.data['custom_id']
+                                if page == "next":
+                                    indice += 1
+                                elif page == "prev":
+                                    indice -= 1
+
+                                embednfts, viewnfts = await nftembed(playerslist, indice)
+
+                                await showmenu.edit_original_message(view=viewnfts, embed=embednfts)
+                                await interaction.response.defer()
+
+                        button_previous = Button(style=discord.ButtonStyle.blurple, custom_id="prev", emoji="◀")
+                        button_next = Button(style=discord.ButtonStyle.blurple, custom_id="next", emoji="▶")
+                        button_next.callback = button_move_callback
+                        button_previous.callback = button_move_callback
+
+                        embednfts, viewnfts = await nftembed(playerslist, indice)
+
+                        await showmenu.edit_original_message(view=viewnfts, embed=embednfts)
+                """
+
+                viewnt = View()
+                viewnt.add_item(button_team)
+
+
+                await showmenu.edit_original_message(view=viewnt, embed=embedteam)
+
+                await interaction.response.defer()
+
+
+
 
         async def button_scout_callback(interaction):
             if str(interaction.user) == user_name:
@@ -567,12 +769,8 @@ async def game(ctx):
                 view.add_item(button_events)
                 view.add_item(button_leaderboard)
                 view.add_item(button_nfts)
-
-                ### TO DO Callback
-
-                button_nt = Button(label="National Team", style=discord.ButtonStyle.blurple,
-                                    row=2, custom_id=user_name+"_nt", emoji="🎌")
                 view.add_item(button_nt)
+
 
                 default_color = 0x00ff00
                 embedevent = discord.Embed(
@@ -614,22 +812,9 @@ async def game(ctx):
                 view.add_item(button_events)
                 view.add_item(button_leaderboard)
                 view.add_item(button_nfts)
+                view.add_item(button_nt)
 
                 await showmenu.edit_original_message(view=view, embed=embedteam)
-                await interaction.response.defer()
-
-        async def button_letleave_callback(interaction):
-            if str(interaction.user) == user_name:
-
-                view = View()
-                view.add_item(button_team)
-                view.add_item(button_scout)
-                view.add_item(button_play)
-                view.add_item(button_events)
-                view.add_item(button_leaderboard)
-                view.add_item(button_nfts)
-
-                await showmenu.edit_original_message(view=view, embed=embedmenu)
                 await interaction.response.defer()
 
         button_play.callback = button_play_callback
@@ -640,6 +825,7 @@ async def game(ctx):
         button_recruit.callback = button_recruit_callback
         button_letleave.callback = button_team_callback
         button_nfts.callback = button_nfts_callback
+        button_nt.callback = button_nt_callback
 
         check_cooldown = cooldown.check(user_name)
 

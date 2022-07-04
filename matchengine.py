@@ -4,6 +4,7 @@ from random import randint
 import teams
 import players
 import commentaries
+import nations
 
 f_goals = "goals.csv"
 
@@ -39,10 +40,19 @@ class MatchEvent:
 
 async def simulate(id, vs, event):
     # Find player's team information
-    t_info = await teams.get(id)
-    playershome = await players.get(id)
-
     event = event
+
+    if event == "international":
+        t_info = await nations.get(id)
+        playershome = await players.getnation(id)
+        if len(playershome) == 11:
+            playershome.insert(0, "Manager")
+
+
+    else:
+        t_info = await teams.get(id)
+        playershome = await players.get(id)
+
 
     def player_form(teamform):
 
@@ -55,8 +65,11 @@ async def simulate(id, vs, event):
             4: 3,
             5: 5
         }
+        try:
+            playerform = int(teamform)
+        except:
+            playerform = 3
 
-        playerform = int(teamform)
         if i < 30:
             playerform -= 1
         if i > 70:
@@ -70,27 +83,35 @@ async def simulate(id, vs, event):
 
         return playerbonus
 
-    ### Away team stats = opponent, if errors : match vs bot team
-    try:
+
+    if event == "international":
+        t_vs_info = await nations.get(vs)
+        playersaway = await players.getnation(vs)
+        if len(playersaway) == 11:
+            playersaway.insert(0, "Manager")
+
+    else:
         t_vs_info = await teams.get(vs)
         playersaway = await players.get(vs)
 
-        team_name_away = t_vs_info.split(",")[0]
+    team_name_away = t_vs_info.split(",")[0]
+    try:
         team_form_away = t_vs_info.split(",")[3]
-
-        away_man = playersaway[0]
-        away_ovr_list = []
-        for x in playersaway:
-            if x.pos != "COACH":
-                x.form = player_form(team_form_away)
-                x.ovr += x.form
-                away_ovr_list.append(x.ovr)
-
-        away_ovr = round(sum(away_ovr_list) / len(away_ovr_list))
-
     except:
-        team_name_away = "MFL Team"
-        away_ovr = randint(65, 72)
+        team_form_away = 3
+
+    away_man = playersaway[0]
+    away_ovr_list = []
+    for x in playersaway:
+        if x == "Manager":
+            continue
+        if x.pos != "COACH":
+            x.form = player_form(team_form_away)
+            x.ovr += x.form
+            away_ovr_list.append(x.ovr)
+
+    away_ovr = round(sum(away_ovr_list) / len(away_ovr_list))
+
 
     ### Home team stats
     team_name_home = t_info.split(",")[0]
@@ -101,6 +122,8 @@ async def simulate(id, vs, event):
     home_ovr_list = []
 
     for x in playershome:
+        if x == "Manager":
+            continue
         if x.pos != "COACH":
             x.form = player_form(team_form_home)
             x.ovr += x.form
@@ -167,7 +190,6 @@ async def simulate(id, vs, event):
 
         if what == "Shoot":
             number = randint(1, 100)
-            print(number)
             for x in shootprob:
                 if number > x:
                     indice += 1
@@ -192,12 +214,9 @@ async def simulate(id, vs, event):
             teamname = team_name_away
             who = playersaway[indice]
 
-        print(who.displayName + " " + teamname + " " + what)
-
         return who, teamname, what, team, success
 
     def register_goals(player, team):
-        print(event)
         # Update f_goals
         if event == "no":
             pfile = open(f_goals, "r+")
@@ -252,6 +271,8 @@ async def simulate(id, vs, event):
         curevent = "\u200b"
 
         for x in playershome:
+            if x == "Manager":
+                continue
             if x.pos != "COACH":
                 home_ovr_list.append(x.ovr)
 
@@ -259,6 +280,8 @@ async def simulate(id, vs, event):
 
         away_ovr_list = []
         for x in playersaway:
+            if x == "Manager":
+                continue
             if x.pos != "COACH":
                 away_ovr_list.append(x.ovr)
 
