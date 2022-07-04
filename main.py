@@ -662,10 +662,6 @@ async def game(ctx):
 
         showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=True)
 
-#### BOT TOKEN ########################
-#with open('token.txt', 'r') as f:
-#    token = f.readline()
-#bot.run(token)
 bot.run(config["botToken"])
 
 
