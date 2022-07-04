@@ -11,6 +11,7 @@ import nfts
 import players
 import teams
 import cooldown
+from config import config
 
 ### Prerequisites
 # Discord2 Python library (py-cord)
@@ -78,7 +79,6 @@ async def create(ctx, name):
 
 
 @bot.command(name='view')
-@commands.cooldown(1, 60, commands.BucketType.user)
 async def change(ctx, user: discord.User):
     if ctx.channel.id in gamechan:
         embedteam = await teams.get_All(str(user.id))
@@ -128,8 +128,20 @@ async def game(ctx):
         user_name = str(ctx.interaction.user)
         default_color = 0x00ff00
         embedmenu = discord.Embed(
-            title='Discord Football Game', color=default_color)
-        embedmenu.add_field(name="Hello", value="Want play ?", inline=True)
+            title='MFL Discord Game', color=default_color)
+        description = "\nYour players are currently in the training field... \n" \
+                    "In your place, I'll go and see what's going on. *Missed passes* and *uncontrolled shots*... " \
+                    "you have a lot of job to do with them. \n\n" \
+                    "But, if you prefer to play with me here, well, you're the **boss**.\n\n" \
+                    "Let me remind you what the buttons below are for. \n" \
+                    "**Team** : Show your line-up \n" \
+                    "**Scout** : Find a non-NFT player and let you the possibility to recruit him. \n" \
+                    "**Play** : Send your players on the field against another team \n" \
+                    "**Events** : List current events... more events, more fun ? \n" \
+                    "**Leaderboard** : Is there a world where your forward is the best scorer of the game ? \n" \
+                    "**NFT** : You have a MFL player in your wallet ? Put him in your team !"
+        embedmenu.add_field(name="Hello coach "+user_name.split("#")[0]+ " !", value=description, inline=True)
+        embedmenu.set_thumbnail(url="")
 
         button_play = Button(label="Play", style=discord.ButtonStyle.green, custom_id="play", emoji="⚽")
         button_scout = Button(label="Scout", style=discord.ButtonStyle.green, custom_id="scout", emoji="👨")
@@ -200,8 +212,6 @@ async def game(ctx):
                             viewopponents.add_item(button_ev5)
                         i += 1
 
-
-
                 id_random = str(teamlist[2].split(",")[1])
                 button_random = Button(label="vs Random", style=discord.ButtonStyle.grey, custom_id=id_random,
                                        emoji="⚽")
@@ -248,6 +258,8 @@ async def game(ctx):
 
                             if str(interaction.user) == user_name:
                                 skip = 1
+                                viewmatch = View()
+                                viewmatch.add_item(button_team)
                                 await showmenu.edit_original_message(view=viewmatch, embed=embedlist[-1])
                                 await interaction.response.defer()
 
@@ -258,7 +270,7 @@ async def game(ctx):
                                 break
 
                             await showmenu.edit_original_message(view=viewmatch, embed=x)
-                            await asyncio.sleep(2)
+                            await asyncio.sleep(1)
 
                             try:
                                 await interaction.response.defer()
@@ -556,6 +568,12 @@ async def game(ctx):
                 view.add_item(button_leaderboard)
                 view.add_item(button_nfts)
 
+                ### TO DO Callback
+
+                button_nt = Button(label="National Team", style=discord.ButtonStyle.blurple,
+                                    row=2, custom_id=user_name+"_nt", emoji="🎌")
+                view.add_item(button_nt)
+
                 default_color = 0x00ff00
                 embedevent = discord.Embed(
                     title="Events", description="Below the list of current events", color=default_color)
@@ -640,12 +658,14 @@ async def game(ctx):
 
         else:
             view.add_item(button_play)
+        embedmenu.set_thumbnail(url="https://i.ibb.co/hV3dymm/mfl-Game-Bot.png")
 
         showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=True)
 
 #### BOT TOKEN ########################
-with open('token2.txt', 'r') as f:
-    token = f.readline()
-bot.run(token)
+#with open('token.txt', 'r') as f:
+#    token = f.readline()
+#bot.run(token)
+bot.run(config["botToken"])
 
 

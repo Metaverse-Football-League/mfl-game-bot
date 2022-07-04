@@ -141,7 +141,6 @@ async def simulate(id, vs, event):
     ### Lists of events (minutes, score_home, score_away)
     matchevents = []
     eventlist = []
-    goal_scorers = []
     curevent = "\u200b"
 
     commentary = commentaries.getCommentary('matchStart', {'HOME_TEAM': teamsname.home, 'AWAY_TEAM': teamsname.away})
@@ -150,7 +149,7 @@ async def simulate(id, vs, event):
         ## Define scoring probabilities
         what = randint(1, 20)
 
-        shootprob = [0,4,11,18,22,29,36,46,61,76,100]
+        shootprob = [0,3,9,15,18,24,30,42,57,72,100]
 
         if what > 17:
             what = "Shoot"
@@ -168,8 +167,9 @@ async def simulate(id, vs, event):
 
         if what == "Shoot":
             number = randint(1, 100)
+            print(number)
             for x in shootprob:
-                if number < x:
+                if number > x:
                     indice += 1
 
         else:
@@ -192,7 +192,7 @@ async def simulate(id, vs, event):
             teamname = team_name_away
             who = playersaway[indice]
 
-        print(who.displayName + " " + teamname + " " + what + " " + team + " " + str(success))
+        print(who.displayName + " " + teamname + " " + what)
 
         return who, teamname, what, team, success
 

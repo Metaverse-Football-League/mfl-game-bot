@@ -1,7 +1,6 @@
 ## Event (name, desc, status)
 f_events = "events.csv"
 
-
 class Event:
     def __init__(self, code, name, desc, status, kind, opponent):
         self.code = code

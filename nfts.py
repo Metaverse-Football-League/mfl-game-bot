@@ -1,5 +1,6 @@
 import discord
 import requests
+from config import config
 import players
 
 
@@ -60,10 +61,13 @@ async def get(id, indice):
 
     }
 
-    host = "https://z519wdyajg.execute-api.us-east-1.amazonaws.com/prod/users/discord/"
+    host = config["apiUrl"] + "/users/discord/"
     user_id = str(id)
     link = host+user_id+"/players"
-    getnft = requests.get(link)
+    headers = {
+        'x-api-key': config["apiKey"]
+    }
+    getnft = requests.get(link, headers=headers)
     nfts = getnft.json()
 
     i = 0
