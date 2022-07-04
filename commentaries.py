@@ -60,5 +60,5 @@ commentaries = {
     ]
 }
 
-def getCommentary(actionType, replacements):
+def getCommentary(actionType, replacements = {}):
   return choice(commentaries[actionType]).format(**replacements)

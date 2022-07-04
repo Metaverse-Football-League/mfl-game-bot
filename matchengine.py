@@ -338,10 +338,10 @@ async def simulate(id, vs, event):
                                                              'DOMINATED_TEAM': teamsname.away if team == "home" else teamsname.home})
 
                 else:
-                    commentary = commentaries.getCommentary('noAction', {'PLAYER_TEAM': 'no', "PLAYER_NAME": 'no'})
+                    commentary = commentaries.getCommentary('noAction')
 
         else:
-            commentary = commentaries.getCommentary('noAction', {'PLAYER_TEAM': 'no', "PLAYER_NAME": 'no'})
+            commentary = commentaries.getCommentary('noAction')
 
         matchevents.append(str(i) + "," + str(score_home) + "," + str(score_away))
 
