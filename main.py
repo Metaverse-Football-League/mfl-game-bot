@@ -3,7 +3,7 @@ import discord
 from discord.ui import View, Button
 from discord.ext import commands
 #from dotenv import load_dotenv
-from random import randint, sample
+from random import randint
 import events
 import leaderboards
 import matchengine
@@ -34,13 +34,11 @@ f_events = "events.csv"
 intents = discord.Intents.all()
 
 ### Set prefix
-#bot = commands.Bot(command_prefix="!", intents=intents)
 bot = discord.Bot()
 
 ### Discord configurations ###
-gamechan = [983723647002882058, 989056372198998076]
-adminid = "593086239024873483"
-cd_button = commands.cooldown(1, 60, commands.BucketType.user)
+adminid = config["adminId"]
+gamechan = config["gameChan"]
 
 ########################################################################################################
 ## START OF PROCESS ##
@@ -55,7 +53,7 @@ async def on_ready():
 @bot.command(name='create', description='The first step to enter into the game...')
 async def create(ctx, name):
     # Usage : !create Team_Name
-    if ctx.channel.id in gamechan:
+    if str(ctx.channel.id) in gamechan:
         teamname = name
         with open(f_teams, "r+") as tfile:
             user = ctx.interaction.user
@@ -66,7 +64,7 @@ async def create(ctx, name):
                 username = "BOT"
             team_id = user_id
             if user_id in tfile.read():
-                if user_id == adminid:
+                if str(user_id) in adminid:
                     team_id = str(randint(1, 999999))
                     tfile.write(teamname + "," + team_id + ",no,3,BOT,\n")
                     await players.create(team_id, username)
@@ -81,14 +79,14 @@ async def create(ctx, name):
 
 @bot.command(name='view')
 async def change(ctx, user: discord.User):
-    if ctx.channel.id in gamechan:
+    if str(ctx.channel.id) in gamechan:
         embedteam = await teams.get_All(str(user.id))
         await ctx.respond(embed=embedteam, ephemeral=False)
 
 
 @bot.command(name='match', description="Start a match !")
 async def match(ctx, user1: discord.User, user2: discord.User):
-    if ctx.channel.id in gamechan:
+    if str(ctx.channel.id) in gamechan:
         events = "no"
         match = await matchengine.play(str(user1.id), str(user2.id), events)
         view = View()
@@ -105,7 +103,7 @@ async def match(ctx, user1: discord.User, user2: discord.User):
 
 @bot.command(name='intmatch', description="Start a match !")
 async def intmatch(ctx, team1:str, team2:str):
-    if ctx.channel.id in gamechan:
+    if str(ctx.channel.id) in gamechan:
         events = "international"
         match = await matchengine.play(str(team1), str(team2), events)
         view = View()
@@ -122,7 +120,7 @@ async def intmatch(ctx, team1:str, team2:str):
 
 @bot.command(name='versus', description="Start a match !")
 async def match(ctx, user2: discord.User):
-    if ctx.channel.id in gamechan:
+    if str(ctx.channel.id) in gamechan:
         user1 = ctx.interaction.user
         events = "no"
         match = await matchengine.play(str(user1.id), str(user2.id), events)
@@ -141,7 +139,7 @@ async def match(ctx, user2: discord.User):
 #### Menu display
 @bot.command(name='game', description='Access to the menu, build your team and compete...')
 async def game(ctx):
-    if ctx.channel.id in gamechan:
+    if str(ctx.channel.id) in gamechan:
         user_id = str(ctx.interaction.user.id)
         user_name = str(ctx.interaction.user)
         default_color = 0x00ff00
@@ -169,7 +167,7 @@ async def game(ctx):
         button_team = Button(label="Team", style=discord.ButtonStyle.green, custom_id="team", emoji="👥")
         button_recruit = Button(label="Recruit", style=discord.ButtonStyle.green, custom_id="recruit", emoji="✅")
         button_replace = Button(label="Replace", style=discord.ButtonStyle.green, custom_id="replace", emoji="✅")
-        button_letleave = Button(label="Return", style=discord.ButtonStyle.grey, custom_id="letleave", emoji="❌")
+        button_return = Button(label="Return", style=discord.ButtonStyle.grey, custom_id="return", emoji="❌")
         button_finishmatch = Button(label="Skip", style=discord.ButtonStyle.blurple, custom_id="finishmatch")
         button_leaderboard = Button(label="Leaderboard", style=discord.ButtonStyle.grey, row=1, custom_id="leaderboard",
                                     emoji="🏆")
@@ -251,7 +249,7 @@ async def game(ctx):
                         viewopponents.add_item(button_vs2)
                     i += 1
 
-                viewopponents.add_item(button_team)
+                viewopponents.add_item(button_return)
 
                 await showmenu.edit_original_message(view=viewopponents, embed=embedteam)
                 await interaction.response.defer()
@@ -264,7 +262,7 @@ async def game(ctx):
                         cooldown.add_cd_match(user_name)
                         viewmatch = View()
                         viewmatch.add_item(button_finishmatch)
-                        viewmatch.add_item(button_team)
+                        viewmatch.add_item(button_return)
 
                         vs = interaction.data['custom_id']
                         if "event_" in vs:
@@ -281,7 +279,7 @@ async def game(ctx):
                             if str(interaction.user) == user_name:
                                 skip = 1
                                 viewmatch = View()
-                                viewmatch.add_item(button_team)
+                                viewmatch.add_item(button_return)
                                 await showmenu.edit_original_message(view=viewmatch, embed=embedlist[-1])
                                 await interaction.response.defer()
 
@@ -367,6 +365,7 @@ async def game(ctx):
                     b4 = None
                     b5 = None
                     i = 0
+                    indice = indice % len(playerslist)
                     for x in playerslist[indice]:
                         nation = x.split(",")[0]
                         positions = x.split(",")[1]
@@ -412,16 +411,16 @@ async def game(ctx):
                     viewnfts = View()
                     viewnfts.add_item(button_previous)
                     viewnfts.add_item(button_next)
-                    viewnfts.add_item(button_team)
+                    viewnfts.add_item(button_return)
 
                     async def button_scoutnft_callback(interaction):
                         if str(interaction.user) == user_name:
                             viewscout = View()
-                            viewscout.add_item(button_team)
                             viewscout.add_item(button_recruit)
-                            viewscout.add_item(button_letleave)
+                            viewscout.add_item(button_return)
 
                             select = int(interaction.data['custom_id'].split(" ")[1])
+
                             player = playerslist[indice][select]
                             nat = player.split(",")[0]
                             pos = player.split(",")[1]
@@ -528,6 +527,8 @@ async def game(ctx):
                             b4 = None
                             b5 = None
                             i = 0
+
+                            indice = indice % len(playerslist)
                             for x in playerslist[indice]:
                                 displayName = x.split(",")[0]
                                 ovr = x.split(",")[1]
@@ -581,14 +582,13 @@ async def game(ctx):
                             viewnfts = View()
                             viewnfts.add_item(button_previous)
                             viewnfts.add_item(button_next)
-                            viewnfts.add_item(button_team)
+                            viewnfts.add_item(button_return)
 
                             async def button_search_callback(interaction):
                                 if str(interaction.user) == user_name:
                                     viewnt = View()
-                                    viewnt.add_item(button_team)
                                     viewnt.add_item(button_replace)
-                                    viewnt.add_item(button_letleave)
+                                    viewnt.add_item(button_return)
 
                                     select = int(interaction.data['custom_id'].split(" ")[1])
                                     player = playerslist[indice][select]
@@ -681,7 +681,7 @@ async def game(ctx):
                 button_ntplayers.callback = button_ntplayers_callback
 
                 viewnt = View()
-                viewnt.add_item(button_team)
+                viewnt.add_item(button_return)
                 viewnt.add_item(button_ntplayers)
 
                 await showmenu.edit_original_message(view=viewnt, embed=embedteam)
@@ -693,9 +693,8 @@ async def game(ctx):
             if str(interaction.user) == user_name:
                 cooldown.add_cd_scout(user_name)
                 viewscout = View()
-                viewscout.add_item(button_team)
                 viewscout.add_item(button_recruit)
-                viewscout.add_item(button_letleave)
+                viewscout.add_item(button_return)
                 embedplayer = await players.scout(user_id)
                 await showmenu.edit_original_message(view=viewscout, embed=embedplayer)
                 await interaction.response.defer()
@@ -704,7 +703,7 @@ async def game(ctx):
             if str(interaction.user) == user_name:
 
                 viewlead = View()
-                viewlead.add_item(button_team)
+                viewlead.add_item(button_return)
 
                 embedlead = await leaderboards.get(user_id)
                 eventlist = await events.get("vs")
@@ -780,12 +779,8 @@ async def game(ctx):
                 eventlist = await events.get("all")
 
                 view = View()
-                view.add_item(button_team)
-                view.add_item(button_events)
+                view.add_item(button_return)
                 view.add_item(button_leaderboard)
-                view.add_item(button_nfts)
-                view.add_item(button_nt)
-
 
                 default_color = 0x00ff00
                 embedevent = discord.Embed(
@@ -867,7 +862,7 @@ async def game(ctx):
         button_scout.callback = button_scout_callback
         button_recruit.callback = button_recruit_callback
         button_replace.callback = button_replace_callback
-        button_letleave.callback = button_team_callback
+        button_return.callback = button_team_callback
         button_nfts.callback = button_nfts_callback
         button_nt.callback = button_nt_callback
 
