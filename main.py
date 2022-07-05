@@ -168,6 +168,7 @@ async def game(ctx):
                            row=2, custom_id="nt", emoji="🎌")
         button_team = Button(label="Team", style=discord.ButtonStyle.green, custom_id="team", emoji="👥")
         button_recruit = Button(label="Recruit", style=discord.ButtonStyle.green, custom_id="recruit", emoji="✅")
+        button_replace = Button(label="Replace", style=discord.ButtonStyle.green, custom_id="replace", emoji="✅")
         button_letleave = Button(label="Return", style=discord.ButtonStyle.grey, custom_id="letleave", emoji="❌")
         button_finishmatch = Button(label="Skip", style=discord.ButtonStyle.blurple, custom_id="finishmatch")
         button_leaderboard = Button(label="Leaderboard", style=discord.ButtonStyle.grey, row=1, custom_id="leaderboard",
@@ -508,15 +509,12 @@ async def game(ctx):
                 else:
                     embedteam = await nations.getAll(teaminfo.displayName)
 
-                """
-                async def button_others_callback(interaction):
+                async def button_ntplayers_callback(interaction):
                     if str(interaction.user) == user_name:
                         global indice
                         indice = 0
 
-                        await interaction.response.defer()
-
-                        playerslist = await nfts.get(user_id, indice)
+                        playerslist = await nations.getList(teaminfo.displayName)
 
                         async def nftembed(playerslist, indice):
                             default_color = 0xffff00
@@ -531,11 +529,14 @@ async def game(ctx):
                             b5 = None
                             i = 0
                             for x in playerslist[indice]:
-                                nation = x.split(",")[0]
-                                positions = x.split(",")[1]
-                                ovr = x.split(",")[2]
-                                displayName = x.split(",")[3]
-                                rarity = x.split(",")[4]
+                                displayName = x.split(",")[0]
+                                ovr = x.split(",")[1]
+                                positions = x.split(",")[2]
+                                nation = x.split(",")[3]
+                                prefix_nat = x.split(",")[4]
+                                rarity = x.split(",")[6]
+
+                                rarity_flag = "⚪"
 
                                 if rarity == "common":
                                     rarity_flag = "⚪"
@@ -547,10 +548,10 @@ async def game(ctx):
                                     rarity_flag = "🟣"
 
                                 if len(positions) == 3:
-                                    description = description + ":flag_" + nation + ":`" + positions + " " + str(
+                                    description = description + ":flag_" + prefix_nat + ":`" + positions + " " + str(
                                         ovr) + "`" + rarity_flag + " *" + displayName + "*\n"
                                 else:
-                                    description = description + ":flag_" + nation + ":`" + positions + "  " + str(
+                                    description = description + ":flag_" + prefix_nat + ":`" + positions + "  " + str(
                                         ovr) + "`" + rarity_flag + " *" + displayName + "*\n"
 
                                 if i == 0:
@@ -575,28 +576,32 @@ async def game(ctx):
                                     buttons.append(b5)
                                 i += 1
 
-                            embednt.add_field(name="Players", value=description)
+                            embednfts.add_field(name="Players", value=description)
 
-                            viewnt = View()
-                            viewnt.add_item(button_previous)
-                            viewnt.add_item(button_next)
-                            viewnt.add_item(button_team)
+                            viewnfts = View()
+                            viewnfts.add_item(button_previous)
+                            viewnfts.add_item(button_next)
+                            viewnfts.add_item(button_team)
 
-                            async def button_replace_callback(interaction):
+                            async def button_search_callback(interaction):
                                 if str(interaction.user) == user_name:
                                     viewnt = View()
-                                    viewnt.add_item(button_nt)
+                                    viewnt.add_item(button_team)
                                     viewnt.add_item(button_replace)
+                                    viewnt.add_item(button_letleave)
 
                                     select = int(interaction.data['custom_id'].split(" ")[1])
                                     player = playerslist[indice][select]
-                                    nat = player.split(",")[0]
-                                    pos = player.split(",")[1]
-                                    ovr = player.split(",")[2]
-                                    name = player.split(",")[3]
-                                    rarity = player.split(",")[4]
+                                    print(player)
+                                    name = player.split(",")[0]
+                                    ovr = player.split(",")[1]
+                                    pos = player.split(",")[2]
+                                    nation = player.split(",")[3]
+                                    prefix_nat = player.split(",")[4]
+                                    rarity = player.split(",")[6]
 
-                                    alreadyinTeam = await players.check(user_id, name)
+
+                                    alreadyinTeam = await nations.alreadyinTeam(nation, name)
 
                                     if alreadyinTeam == True:
 
@@ -616,33 +621,38 @@ async def game(ctx):
 
                                         await showmenu.edit_original_message(view=view, embed=embedscout)
                                         await interaction.response.defer()
-
+                                    
                                     else:
-                                        embedscout = await nfts.scout(user_id, name, ovr, pos, nat, rarity)
+
+                                        embedscout = await nations.search(nation, name, ovr, pos, prefix_nat, rarity)
 
                                         await showmenu.edit_original_message(view=viewnt, embed=embedscout)
                                         await interaction.response.defer()
 
                             if b1:
-                                b1.callback = button_others_callback
+                                b1.callback = button_search_callback
                             if b2:
-                                b2.callback = button_others_callback
+                                b2.callback = button_search_callback
                             if b3:
-                                b3.callback = button_others_callback
+                                b3.callback = button_search_callback
                             if b4:
-                                b4.callback = button_others_callback
+                                b4.callback = button_search_callback
                             if b5:
-                                b5.callback = button_others_callback
+                                b5.callback = button_search_callback
 
                             for x in buttons:
                                 viewnfts.add_item(x)
 
                             return embednfts, viewnfts
 
+
+
                         async def button_move_callback(interaction):
+
                             global indice
                             if str(interaction.user) == user_name:
                                 page = interaction.data['custom_id']
+                                print(indice)
                                 if page == "next":
                                     indice += 1
                                 elif page == "prev":
@@ -653,25 +663,30 @@ async def game(ctx):
                                 await showmenu.edit_original_message(view=viewnfts, embed=embednfts)
                                 await interaction.response.defer()
 
+                        ### Generate embed
+
                         button_previous = Button(style=discord.ButtonStyle.blurple, custom_id="prev", emoji="◀")
                         button_next = Button(style=discord.ButtonStyle.blurple, custom_id="next", emoji="▶")
                         button_next.callback = button_move_callback
                         button_previous.callback = button_move_callback
 
-                        embednfts, viewnfts = await nftembed(playerslist, indice)
+                        embednt, viewnt = await nftembed(playerslist, indice)
 
-                        await showmenu.edit_original_message(view=viewnfts, embed=embednfts)
-                """
+                        await showmenu.edit_original_message(view=viewnt, embed=embednt)
+                        await interaction.response.defer()
+
+
+
+                button_ntplayers = Button(label="Players list", style=discord.ButtonStyle.green, custom_id="ntplayers")
+                button_ntplayers.callback = button_ntplayers_callback
 
                 viewnt = View()
                 viewnt.add_item(button_team)
-
+                viewnt.add_item(button_ntplayers)
 
                 await showmenu.edit_original_message(view=viewnt, embed=embedteam)
 
                 await interaction.response.defer()
-
-
 
 
         async def button_scout_callback(interaction):
@@ -817,12 +832,41 @@ async def game(ctx):
                 await showmenu.edit_original_message(view=view, embed=embedteam)
                 await interaction.response.defer()
 
+        async def button_replace_callback(interaction):
+            if str(interaction.user) == user_name:
+                playerscheck = interaction.message.embeds[0].fields
+                playersinfos = playerscheck[0].value.split(" ")
+                nat = playersinfos[0].split("`")[0].split("_")[1].replace(":", "")
+                num = playersinfos[0].split("`")[1]
+                pos = playersinfos[2]
+                ovr = playersinfos[3].replace("`", "")
+                name = playersinfos[5] + " " + playersinfos[6]
+                if len(playersinfos) > 7:
+                    name = name + " " + playersinfos[7]
+
+                name = name.replace("*", "")
+                await nations.replace(num, name, ovr, pos, nat)
+                embedteam = await nations.getAll(nat)
+
+                view = View()
+                view.add_item(button_team)
+                view.add_item(button_scout)
+                view.add_item(button_play)
+                view.add_item(button_events)
+                view.add_item(button_leaderboard)
+                view.add_item(button_nfts)
+                view.add_item(button_nt)
+
+                await showmenu.edit_original_message(view=view, embed=embedteam)
+                await interaction.response.defer()
+
         button_play.callback = button_play_callback
         button_events.callback = button_events_callback
         button_leaderboard.callback = button_leaderboard_callback
         button_team.callback = button_team_callback
         button_scout.callback = button_scout_callback
         button_recruit.callback = button_recruit_callback
+        button_replace.callback = button_replace_callback
         button_letleave.callback = button_team_callback
         button_nfts.callback = button_nfts_callback
         button_nt.callback = button_nt_callback

@@ -33,7 +33,7 @@ commentaries = {
         "🟥 *{PLAYER_TEAM}*: It's a red card for **{PLAYER_NAME}**",
     ],
     'shoot': [
-        "**{PLAYER_NAME}** is in a good position and shoot...",
+        "**{PLAYER_NAME}** is in a good position and shoots...",
     ],
     'goal': [
         "⚽ What a goal for *{PLAYER_TEAM}* by **{PLAYER_NAME}** !",

@@ -1,4 +1,8 @@
-players_file = "all_players.csv"
+import requests
+
+from config import config
+
+players_file = "selections/all_players.csv"
 
 nations = {
     'ALGERIA': 'dz',
@@ -57,146 +61,70 @@ positions = {
     'GK': 1,
     'LB': 2,
     'LWB': 2,
-    'CB': 3,
+    'CB': 4,
     'RB': 5,
     'RWB': 5,
     'CDM': 6,
-    'CM': 6,
+    'CM': 7,
     'CAM': 8,
-    'AM': 8,
-    'LW': 9,
+    'LW': 12,
     'LM': 9,
-    'RW': 10,
+    'RW': 13,
     'RM': 10,
     'CF': 11,
-    'ST': 11,
-    'FW': 11
+    'ST': 14,
 }
 
-### Create best XI for each country
-for x in nations.keys():
-    players_number = ["No", "No", "No", "No", "No", "No", "No", "No", "No", "No", "No"]
-    i = 0
-    filepath = "selections/best_team_"+x
-    with open(filepath, "a") as tfile:
-        for line in reversed(open("all_players.csv").readlines()):
-            if i < 11:
-                if '"' in line.split(',')[2]:
-                    nation = line.split('"')[2].split(',')[2]
-                    pos = line.split('"')[1].split(',')[0]
-                    ovr = line.split('"')[2].split(',')[3]
-                else:
-                    nation = line.split(',')[4]
-                    pos = line.split(',')[2]
-                    ovr = line.split(',')[5]
-
-                displayName = line.split(',')[0]
-                try:
-                    number = positions[pos]
-                except:
-                    continue
-                rarity = line.split(',')[1]
-                teamid = x
-
-                if nation == x:
-                    if (number == 3) or (number == 6):
-                        if players_number[number - 1] == "No":
-                            i += 1
-                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + nations[
-                                x] + "," + "Yes" + "," + rarity + ",0,\n"
-                            players_number[number - 1] = description
-                        elif players_number[number] == "No":
-                            print("Find : " + displayName + " " + pos + " : " + str(number))
-                            i += 1
-                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + nations[
-                                x] + "," + "Yes" + "," + rarity + ",0,\n"
-                            players_number[number] = description
-
-                    else:
-                        if players_number[number - 1] == "No":
-                            i += 1
-                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + nations[x] + "," + "Yes" + "," + rarity + ",0,\n"
-                            players_number[number-1] = description
-
-        for x in players_number:
-            tfile.write(x)
-
-
-
 """
-for x in nations.keys():
-    players_number = ["No", "No", "No", "No", "No", "No", "No", "No", "No", "No", "No"]
-    i = 0
-    filepath = "selections/active_team_"+x
-    with open(filepath, "a") as tfile:
-        for line in open("all_players.csv").readlines():
-            if i < 11:
-                if '"' in line.split(',')[2]:
-                    nation = line.split('"')[2].split(',')[2]
-                    pos = line.split('"')[1].split(',')[0]
-                    ovr = line.split('"')[2].split(',')[3]
+for n in nations.keys():
+
+    host = config["apiUrl"] + "/players/nations/tops?nbPerPosition=5&nations=%5B%22"+str(n)+"%22%5D"
+    print(host)
+    headers = {
+        'x-api-key': config["apiKey"]
+    }
+    getnft = requests.get(host, headers=headers)
+    nfts = getnft.json()
+
+    list = nfts[n]
+    with open(players_file, "a") as tfile:
+        for p in positions.keys():
+            plist = nfts[n][p]
+            for x in plist:
+                displayName = x['metadata']['firstName']+" "+x['metadata']['lastName']
+                ovr = x['metadata']['overall']
+                pos = p
+                nat = n
+                nft = "Yes"
+                if ovr >= 85:
+                    rarity = "legend"
+                elif ovr >= 75:
+                    rarity = "rare"
+                elif ovr >= 65:
+                    rarity = "uncommon"
                 else:
-                    nation = line.split(',')[4]
-                    pos = line.split(',')[2]
-                    ovr = line.split(',')[5]
+                    rarity = "common"
+                tfile.write(displayName + "," + str(ovr) + "," + pos + "," + nat + "," + nations[
+                    nat] + "," + "Yes" + "," + rarity + ",\n")
 
-                displayName = line.split(',')[0]
-                try:
-                    number = positions[pos]
-                except:
-                    continue
-                rarity = line.split(',')[1]
-                teamid = x
-
-                if nation == x:
-                    if (number == 3) or (number == 6):
-                        if players_number[number - 1] == "No":
-                            i += 1
-                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + nations[
-                                x] + "," + "Yes" + "," + rarity + ",0,\n"
-                            players_number[number - 1] = description
-                        elif players_number[number] == "No":
-                            print("Find : " + displayName + " " + pos + " : " + str(number))
-                            i += 1
-                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + nations[
-                                x] + "," + "Yes" + "," + rarity + ",0,\n"
-                            players_number[number] = description
-
-                    else:
-                        if players_number[number - 1] == "No":
-                            i += 1
-                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + nations[x] + "," + "Yes" + "," + rarity + ",0,\n"
-                            players_number[number-1] = description
-
-        for x in players_number:
-            tfile.write(x)
-
-
-
-
+### Generate file per country
 for x in nations.keys():
     players_number = []
     i = 0
     filepath = "selections/team_"+x
     with open(filepath, "a") as tfile:
-        for line in reversed(open("all_players.csv").readlines()):
-            if i < 33:
-                if '"' in line.split(',')[2]:
-
-                    nation = line.split('"')[2].split(',')[2]
-                    pos = line.split('"')[1].split(',')[0]
-                    ovr = line.split('"')[2].split(',')[3]
-                else:
-                    nation = line.split(',')[4]
-                    pos = line.split(',')[2]
-                    ovr = line.split(',')[5]
+        for line in open(players_file).readlines():
+            if i < 42:
+                nation = line.split(',')[3]
+                pos = line.split(',')[2]
+                ovr = line.split(',')[1]
 
                 displayName = line.split(',')[0]
                 try:
                     number = positions[pos]
                 except:
                     continue
-                rarity = line.split(',')[1]
+                rarity = line.split(',')[6]
                 teamid = x
 
                 if nation == x:
@@ -208,4 +136,98 @@ for x in nations.keys():
                         players_number.append(number)
                         i += 1
                         tfile.write(displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + nations[x] + "," + "Yes" + "," + rarity + ",\n")
+
+"""
+
+
+### Create starter 11 for each team
+for x in nations.keys():
+    players_number = ["No", "No", "No", "No", "No", "No", "No", "No", "No", "No", "No"]
+    i = 0
+    filepath = "selections/active_team_"+x
+    with open(filepath, "a") as tfile:
+        for line in reversed(open(players_file).readlines()):
+            if i < 11:
+                nation = line.split(',')[3]
+                pos = line.split(',')[2]
+                ovr = line.split(',')[1]
+
+                displayName = line.split(',')[0]
+                try:
+                    number = positions[pos]
+                except:
+                    continue
+                rarity = line.split(',')[6]
+                teamid = x
+                if number > 11:
+                    continue
+
+                if nation == x:
+                    number = number - 1
+                    if (number == 3) or (number == 6):
+                        if players_number[number - 1] == "No":
+                            i += 1
+                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + nations[
+                                x] + "," + "Yes" + "," + rarity + ",0,\n"
+                            players_number[number - 1] = description
+                        elif players_number[number] == "No":
+                            print("Find : " + displayName + " " + pos + " : " + str(number))
+                            i += 1
+                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + nations[
+                                x] + "," + "Yes" + "," + rarity + ",0,\n"
+                            players_number[number] = description
+
+                    else:
+                        if players_number[number] == "No":
+                            i += 1
+                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + nations[x] + "," + "Yes" + "," + rarity + ",0,\n"
+                            players_number[number] = description
+
+        for x in players_number:
+            tfile.write(x)
+
+
+
+
+"""
+### Create best XI for each country
+for x in nations.keys():
+    players_number = ["No", "No", "No", "No", "No", "No", "No", "No", "No", "No", "No"]
+    i = 0
+    filepath = "selections/best_team_"+x
+    with open(filepath, "a") as tfile:
+        for line in reversed(open("all_players.csv").readlines()):
+            if i < 11:
+                nation = line.split(',')[3]
+                pos = line.split(',')[2]
+                ovr = line.split(',')[1]
+                displayName = line.split(',')[0]
+                number = positions[pos]
+                rarity = line.split(',')[6]
+                teamid = x
+
+                if nation == x:
+                    if (number == 3) or (number == 6):
+                        if players_number[number - 1] == "No":
+                            i += 1
+                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + nations[
+                                x] + "," + "Yes" + "," + rarity + ",0,\n"
+                            players_number[number - 1] = description
+                        elif players_number[number] == "No":
+                            print("Find : " + displayName + " " + pos + " : " + str(number))
+                            i += 1
+                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + nations[
+                                x] + "," + "Yes" + "," + rarity + ",0,\n"
+                            players_number[number] = description
+
+                    else:
+                        if players_number[number - 1] == "No":
+                            i += 1
+                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + nations[x] + "," + "Yes" + "," + rarity + ",0,\n"
+                            players_number[number-1] = description
+
+        for x in players_number:
+            tfile.write(x)
+
+
 """
