@@ -19,7 +19,7 @@ async def get(id):
             except:
                 continue
 
-async def get_All(id):
+async def getAll(id):
     user_id = str(id)
     t_info = await get(user_id)
 

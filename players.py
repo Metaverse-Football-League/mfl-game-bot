@@ -99,7 +99,7 @@ async def get(id):
         return playerlist
 
 async def getnation(nation):
-    with open("selections/best_team_"+nation.upper(), "r+") as pfile:
+    with open("selections/active_team_"+nation.upper(), "r+") as pfile:
         playerfile = pfile.readlines()
         playerlist = []
         i = 0

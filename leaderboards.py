@@ -1,38 +1,42 @@
 import discord
+import events
+
 
 async def get(i):
     f_goals = "goals.csv"
+    leaderboard = "byPlayer"
+    reward = 0
+    nbgoal = 0
 
     if "event_" in i:
+        event = await events.getbyCode(i)
+        leaderboard = event[0].leaderboard
+        reward = event[0].reward
         f_goals = "goals_"+i+".csv"
         print(f_goals)
 
     with open(f_goals, "r") as tgoals:
         goalfile = tgoals.readlines()
         goalfile.sort(reverse=True, key=lambda x: int(x.split(",")[0]))
-        goallist = []
-        embedname = ""
-        embedteam = ""
         embedscore = ""
         indice = 1
 
-        for goal in goalfile:
+        for line in goalfile:
+            number = line.split(",")[0]
+            if int(reward) > 0:
+                nbgoal += int(number)
             if indice <= 10:
-                name = goal.split(",")[1]
-                team = goal.split(",")[2]
-                number = goal.split(",")[0]
-                goallist.append(goal)
-                embedname = embedname + name + "\n"
-                embedteam = embedteam + team + "\n"
-                embedscore = embedscore + str(number) + "\n"
+                number = line.split(",")[0]
+                team = line.split(",")[1]
+                if leaderboard == "byPlayer":
+                    name = line.split(",")[2]
+                    embedscore = embedscore + "**"+ str(number) + "** : " + name + " - *" + team + "*\n"
+                else:
+                    embedscore = embedscore + "**"+ str(number) + "** : "+team+"\n"
                 indice += 1
 
-        if embedname == "":
-            embedname = "\u200b"
         if embedscore == "":
             embedscore = "\u200b"
-        if embedteam == "":
-            embedteam = "\u200b"
 
         default_color = 0x00ff00
 
@@ -43,8 +47,12 @@ async def get(i):
         else:
             embedlead = discord.Embed(
                 title="Leaderboards", description="Best players", color=default_color)
-        embedlead.add_field(name="Player", value=embedname)
-        embedlead.add_field(name="Team", value=embedteam)
-        embedlead.add_field(name="Goals", value=embedscore)
+
+        if leaderboard == "byPlayer":
+            embedlead.add_field(name="Goals : Player (Team)", value=embedscore)
+        else:
+            embedlead.add_field(name="Goals : Team", value=embedscore)
+        if int(reward) > 0:
+            embedlead.add_field(name="Road to "+str(reward)+" goals !", value=str(nbgoal)+"/"+str(reward), inline=False)
 
         return embedlead

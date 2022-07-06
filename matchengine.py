@@ -1,6 +1,8 @@
 import random
 import discord
 from random import randint
+
+import events
 import teams
 import players
 import commentaries
@@ -40,7 +42,11 @@ class MatchEvent:
 
 async def simulate(id, vs, event):
     # Find player's team information
-    event = event
+    eventinfo = await events.getbyCode(event)
+    leads = "byPlayer"
+
+    if len(eventinfo) > 0:
+        leads = eventinfo[0].leaderboard
 
     if event == "international":
         t_info = await nations.get(id)
@@ -48,11 +54,9 @@ async def simulate(id, vs, event):
         if len(playershome) == 11:
             playershome.insert(0, "Manager")
 
-
     else:
         t_info = await teams.get(id)
         playershome = await players.get(id)
-
 
     def player_form(teamform):
 
@@ -82,7 +86,6 @@ async def simulate(id, vs, event):
         playerbonus = dict_form[playerform]
 
         return playerbonus
-
 
     if event == "international":
         t_vs_info = await nations.get(vs)
@@ -216,8 +219,9 @@ async def simulate(id, vs, event):
 
         return who, teamname, what, team, success
 
-    def register_goals(player, team):
+    async def register_goals(player, team, sort):
         # Update f_goals
+
         if event == "no":
             pfile = open(f_goals, "r+")
         else:
@@ -225,37 +229,54 @@ async def simulate(id, vs, event):
 
         playerfile = pfile.readlines()
         playerlist = []
+        newgoals = 1
         status = 0
 
         if len(playerfile) > 0:
-            for line in playerfile:
+            if sort == "byPlayer":
+                new_line = str(newgoals) + "," + team + "," + player + ",\n"
+                for line in playerfile:
+                    fplayer = line.split(",")[1]
+                    fteam = line.split(",")[2]
 
-                fplayer = line.split(",")[1]
-                fteam = line.split(",")[2]
+                    if (fplayer == player) and (fteam == team):
+                        fgoals = int(line.split(",")[0])
+                        newgoals = fgoals + 1
+                        new_line = str(newgoals) + "," + team + "," + player + ",\n"
+                        replace = line.replace(line, new_line)
+                        line = replace
+                        if "," not in line:
+                            line = ",,,,\n"
+                        status = 1
 
-                if (fplayer == player) and (fteam == team):
-                    fgoals = int(line.split(",")[0])
-                    newgoals = fgoals + 1
-                    new_line = str(newgoals) + "," + player + "," + team + ",\n"
-                    replace = line.replace(line, new_line)
-                    line = replace
-                    if "," not in line:
-                        line = ",,,,\n"
-                    status = 1
+                    playerlist.append(line)
 
-                playerlist.append(line)
+            elif sort == "byTeam":
+                new_line = str(newgoals) + ","+ team + ",\n"
+                for line in playerfile:
+                    fteam = line.split(",")[1]
 
-            if status == 0:
-                newgoals = 1
-                pfile.write(str(newgoals) + "," + player + "," + team + ",\n")
-            else:
+                    if fteam == team:
+                        fgoals = int(line.split(",")[0])
+                        newgoals = fgoals + 1
+                        new_line = str(newgoals) + ","+ team + ",\n"
+                        replace = line.replace(line, new_line)
+                        line = replace
+                        if "," not in line:
+                            line = ",,,,\n"
+                        status = 1
 
-                pfile.seek(0)
-                pfile.truncate(0)
-                pfile.writelines(playerlist)
+                    playerlist.append(line)
+
+        if status == 0:
+            pfile.write(new_line)
         else:
-            newgoals = 1
-            pfile.write(str(newgoals) + "," + player + "," + team + ",\n")
+            pfile.seek(0)
+            pfile.truncate(0)
+            pfile.writelines(playerlist)
+        #else:
+        #    newgoals = 1
+        #    pfile.write(str(newgoals) + "," + player + "," + team + ",\n")
 
         pfile.close()
 
@@ -316,14 +337,17 @@ async def simulate(id, vs, event):
                     if success == 1:
 
                         if team == "home":
-                            register_goals(whoplay, teamsname.home)
                             score_home += 1
                             score = Score(score_home, score_away)
+                            if event != "versus":
+                                await register_goals(whoplay, teamsname.home, leads)
 
                         else:
-                            register_goals(whoplay, teamsname.away)
                             score_away += 1
                             score = Score(score_home, score_away)
+                            if event != "versus":
+                                await register_goals(whoplay, teamsname.away, leads)
+
 
                         curevent = Event("goal", whoplay, whoTeam, i)
                         commentary = commentaries.getCommentary('goal',
@@ -458,13 +482,13 @@ async def play(id, vs, events):
         else:
             description = description_default
 
-        home_score = x.score.home
-        away_score = x.score.away
+        home_score = str(x.score.home)
+        away_score = str(x.score.away)
         embedscore = discord.Embed(
             title='Match Day', color=default_color, description=description)
+        embedscore.add_field(name=home_name+" - "+away_name, value=home_score+" - "+away_score, inline=True)
         embedscore.add_field(name="MIN", value=str(minutes) + "'", inline=True)
-        embedscore.add_field(name=home_name, value=str(home_score), inline=True)
-        embedscore.add_field(name=away_name, value=str(away_score), inline=True)
+        #embedscore.add_field(name=away_name, value=str(away_score), inline=True)
         embedscore.add_field(name="Commentary", value=commentary, inline=False)
         if len(oldcommentaries) > 0:
             embedscore.add_field(name="\u200b", value=lastcommentaries, inline=False)

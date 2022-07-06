@@ -40,6 +40,17 @@ bot = discord.Bot()
 adminid = config["adminId"]
 gamechan = config["gameChan"]
 
+async def callmatch(team1, team2, event):
+
+    match = await matchengine.play(str(team1), str(team2), event)
+    view = View()
+    color = 0x00ff00
+    embedmenu = discord.Embed(
+        title='Discord Football Game', color=color)
+
+    return view, embedmenu, match
+
+
 ########################################################################################################
 ## START OF PROCESS ##
 ########################################################################################################
@@ -51,15 +62,15 @@ async def on_ready():
 
 #### CREATE TEAM ####
 @bot.command(name='create', description='The first step to enter into the game...')
-async def create(ctx, name):
+async def create(ctx):
     # Usage : !create Team_Name
     if str(ctx.channel.id) in gamechan:
-        teamname = name
         with open(f_teams, "r+") as tfile:
             user = ctx.interaction.user
             user_id = str(user.id)
             if user.id > 1000000:
-                username = user.name
+                username = user.nick
+                teamname = "FC "+username
             else:
                 username = "BOT"
             team_id = user_id
@@ -76,65 +87,55 @@ async def create(ctx, name):
                 await players.create(team_id, username)
                 await ctx.respond("Team " + teamname + " created !", ephemeral=True)
 
-
 @bot.command(name='view')
 async def change(ctx, user: discord.User):
     if str(ctx.channel.id) in gamechan:
-        embedteam = await teams.get_All(str(user.id))
+        embedteam = await teams.getAll(str(user.id))
         await ctx.respond(embed=embedteam, ephemeral=False)
 
 
 @bot.command(name='match', description="Start a match !")
 async def match(ctx, user1: discord.User, user2: discord.User):
     if str(ctx.channel.id) in gamechan:
-        events = "no"
-        match = await matchengine.play(str(user1.id), str(user2.id), events)
-        view = View()
-        default_color = 0x00ff00
-        embedmenu = discord.Embed(
-            title='Discord Football Game', color=default_color)
-
+        team1 = str(user1.id)
+        team2 = str(user2.id)
+        event = "no"
+        view, embedmenu, match = await callmatch(team1, team2, event)
         showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=False)
 
         for x in match:
-            #await showmenu.edit(view=view, embed=x)
             await showmenu.edit_original_message(view=view, embed=x)
             await asyncio.sleep(1)
+
 
 @bot.command(name='intmatch', description="Start a match !")
 async def intmatch(ctx, team1:str, team2:str):
     if str(ctx.channel.id) in gamechan:
-        events = "international"
-        match = await matchengine.play(str(team1), str(team2), events)
-        view = View()
-        default_color = 0x00ff00
-        embedmenu = discord.Embed(
-            title='Discord Football Game', color=default_color)
+        event = "international"
 
+        view, embedmenu, match = await callmatch(team1, team2, event)
         showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=False)
 
         for x in match:
-            #await showmenu.edit(view=view, embed=x)
             await showmenu.edit_original_message(view=view, embed=x)
             await asyncio.sleep(1)
+
 
 @bot.command(name='versus', description="Start a match !")
 async def match(ctx, user2: discord.User):
     if str(ctx.channel.id) in gamechan:
         user1 = ctx.interaction.user
-        events = "no"
-        match = await matchengine.play(str(user1.id), str(user2.id), events)
-        view = View()
-        default_color = 0x00ff00
-        embedmenu = discord.Embed(
-            title='Discord Football Game', color=default_color)
+        team1 = str(user1.id)
+        team2 = str(user2.id)
+        event = "versus"
 
+        view, embedmenu, match = await callmatch(team1, team2, event)
         showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=False)
 
         for x in match:
-            #await showmenu.edit(view=view, embed=x)
             await showmenu.edit_original_message(view=view, embed=x)
             await asyncio.sleep(1)
+
 
 #### Menu display
 @bot.command(name='game', description='Access to the menu, build your team and compete...')
@@ -153,15 +154,16 @@ async def game(ctx):
                     "**Team** : Show your line-up \n" \
                     "**Scout** : Find a non-NFT player and let you the possibility to recruit him. \n" \
                     "**Play** : Send your players on the field against another team \n" \
-                    "**Events** : List current events... more events, more fun ? \n" \
+                    "**Events** : List current eventName... more eventName, more fun ? \n" \
                     "**Leaderboard** : Is there a world where your forward is the best scorer of the game ? \n" \
-                    "**NFT** : You have a MFL player in your wallet ? Put him in your team !"
+                    "**NFT** : You have a MFL player in your wallet ? Put him in your team ! \n" \
+                    "**National Team** : Bring your country into the top of the world !"
         embedmenu.add_field(name="Hello coach "+user_name.split("#")[0]+ " !", value=description, inline=True)
         embedmenu.set_thumbnail(url="")
 
         button_play = Button(label="Play", style=discord.ButtonStyle.green, custom_id="play", emoji="⚽")
         button_scout = Button(label="Scout", style=discord.ButtonStyle.green, custom_id="scout", emoji="👨")
-        button_nfts = Button(label="NFT", style=discord.ButtonStyle.blurple, row=2, custom_id="nfts", emoji="🎉")
+        button_nfts = Button(label="My MFL Players", style=discord.ButtonStyle.blurple, row=2, custom_id="nfts", emoji="🎉")
         button_nt = Button(label="National Team", style=discord.ButtonStyle.blurple,
                            row=2, custom_id="nt", emoji="🎌")
         button_team = Button(label="Team", style=discord.ButtonStyle.green, custom_id="team", emoji="👥")
@@ -171,87 +173,88 @@ async def game(ctx):
         button_finishmatch = Button(label="Skip", style=discord.ButtonStyle.blurple, custom_id="finishmatch")
         button_leaderboard = Button(label="Leaderboard", style=discord.ButtonStyle.grey, row=1, custom_id="leaderboard",
                                     emoji="🏆")
-        button_events = Button(label="Events", style=discord.ButtonStyle.blurple, row=1, custom_id="events", emoji="⭐")
+        button_events = Button(label="Events", style=discord.ButtonStyle.blurple, row=1, custom_id="eventName", emoji="⭐")
 
-        viewdefault = View()
-        viewdefault.add_item(button_team)
-        viewdefault.add_item(button_events)
-        viewdefault.add_item(button_leaderboard)
-        viewdefault.add_item(button_nfts)
-        viewdefault.add_item(button_nt)
+        view_def = View()
+        view_def.add_item(button_team)
+        view_def.add_item(button_events)
+        view_def.add_item(button_leaderboard)
+        view_def.add_item(button_nfts)
+        view_def.add_item(button_nt)
 
-        viewmatch = View()
-        viewmatch.add_item(button_finishmatch)
-        viewmatch.add_item(button_team)
+        view_match = View()
+        view_match.add_item(button_finishmatch)
+        view_match.add_item(button_team)
 
         skip = 0
 
         async def button_play_callback(interaction):
             if str(interaction.user) == user_name:
-                embedteam, teamlist = await teams.find(user_id)
-                eventlist = await events.get("vs")
+                embed_opponents, list_teams = await teams.find(user_id)
+                list_events = await events.get("vs")
 
-                viewopponents = View()
+                view_opponents = View()
 
                 i = 1
 
-                if eventlist[0] != "":
+                if list_events[0] is not None:
                     button_ev1 = None
                     button_ev2 = None
                     button_ev3 = None
                     button_ev4 = None
                     button_ev5 = None
 
-                    for event in eventlist:
+                    for event in list_events:
                         code = event.code
-                        name = event.name
+                        teamName = event.name
                         desc = event.desc
                         status = event.status
                         kind = event.kind
                         opponent = event.opponent
 
                         if i == 1:
-                            button_ev1 = Button(label=name, style=discord.ButtonStyle.blurple,
+                            button_ev1 = Button(label=teamName, style=discord.ButtonStyle.blurple,
                                                     row=1, custom_id=code+","+opponent)
-                            viewopponents.add_item(button_ev1)
+                            view_opponents.add_item(button_ev1)
                         elif i == 2:
-                            button_ev2 = Button(label=name, style=discord.ButtonStyle.blurple,
+                            button_ev2 = Button(label=teamName, style=discord.ButtonStyle.blurple,
                                                     row=1, custom_id=code+","+opponent)
-                            viewopponents.add_item(button_ev2)
+                            view_opponents.add_item(button_ev2)
                         elif i == 3:
-                            button_ev3 = Button(label=name, style=discord.ButtonStyle.blurple,
+                            button_ev3 = Button(label=teamName, style=discord.ButtonStyle.blurple,
                                                     row=1, custom_id=code+","+opponent)
-                            viewopponents.add_item(button_ev3)
+                            view_opponents.add_item(button_ev3)
                         elif i == 4:
-                            button_ev4 = Button(label=name, style=discord.ButtonStyle.blurple,
+                            button_ev4 = Button(label=teamName, style=discord.ButtonStyle.blurple,
                                                     row=1, custom_id=code+","+opponent)
-                            viewopponents.add_item(button_ev4)
+                            view_opponents.add_item(button_ev4)
                         elif i == 5:
-                            button_ev5 = Button(label=name, style=discord.ButtonStyle.blurple,
+                            button_ev5 = Button(label=teamName, style=discord.ButtonStyle.blurple,
                                                     row=1, custom_id=code+","+opponent)
-                            viewopponents.add_item(button_ev5)
+                            view_opponents.add_item(button_ev5)
                         i += 1
 
-                id_random = str(teamlist[2].split(",")[1])
+                id_random = str(list_teams[2].split(",")[1])
                 button_random = Button(label="vs Random", style=discord.ButtonStyle.grey, custom_id=id_random,
                                        emoji="⚽")
-                viewopponents.add_item(button_random)
+                view_opponents.add_item(button_random)
 
                 i = 1
-                for x in teamlist:
-                    name = x.split(",")[0]
-                    vs_id = x.split(",")[1]
+                for x in list_teams:
+                    teamName = x.split(",")[0]
+                    teamId = x.split(",")[1]
+                    print(teamId)
                     if i == 1:
-                        button_vs1 = Button(label=name, style=discord.ButtonStyle.green, custom_id=str(vs_id))
-                        viewopponents.add_item(button_vs1)
+                        button_vs1 = Button(label=teamName, style=discord.ButtonStyle.green, custom_id=str(teamId))
+                        view_opponents.add_item(button_vs1)
                     elif i == 2:
-                        button_vs2 = Button(label=name, style=discord.ButtonStyle.green, custom_id=str(vs_id))
-                        viewopponents.add_item(button_vs2)
+                        button_vs2 = Button(label=teamName, style=discord.ButtonStyle.green, custom_id=str(teamId))
+                        view_opponents.add_item(button_vs2)
                     i += 1
 
-                viewopponents.add_item(button_return)
+                view_opponents.add_item(button_return)
 
-                await showmenu.edit_original_message(view=viewopponents, embed=embedteam)
+                await showmenu.edit_original_message(view=view_opponents, embed=embed_opponents)
                 await interaction.response.defer()
 
                 async def button_vs_callback(interaction):
@@ -260,36 +263,38 @@ async def game(ctx):
                         skip = 0
 
                         cooldown.add_cd_match(user_name)
-                        viewmatch = View()
-                        viewmatch.add_item(button_finishmatch)
-                        viewmatch.add_item(button_return)
+                        view_match = View()
+                        view_match.add_item(button_finishmatch)
+                        view_match.add_item(button_return)
 
-                        vs = interaction.data['custom_id']
-                        if "event_" in vs:
-                            events = vs.split(",")[0]
-                            vs = vs.split(",")[1]
+                        opponent = interaction.data['custom_id']
+                        print(opponent)
+                        if "event_" in opponent:
+                            eventName = opponent.split(",")[0]
+                            opponent = opponent.split(",")[1]
                         else:
-                            events = "no"
+                            eventName = "no"
 
-                        embedlist = await matchengine.play(user_id, vs, events)
+                        print(opponent)
+                        list_embed_match = await matchengine.play(user_id, opponent, eventName)
 
                         async def button_finishmatch_callback(interaction):
                             global skip
 
                             if str(interaction.user) == user_name:
                                 skip = 1
-                                viewmatch = View()
-                                viewmatch.add_item(button_return)
-                                await showmenu.edit_original_message(view=viewmatch, embed=embedlist[-1])
+                                view_finishmatch = View()
+                                view_finishmatch.add_item(button_return)
+                                await showmenu.edit_original_message(view=view_finishmatch, embed=list_embed_match[-1])
                                 await interaction.response.defer()
 
-                        for x in embedlist:
-
+                        for x in list_embed_match:
                             button_finishmatch.callback = button_finishmatch_callback
+
                             if skip == 1:
                                 break
 
-                            await showmenu.edit_original_message(view=viewmatch, embed=x)
+                            await showmenu.edit_original_message(view=view_match, embed=x)
                             await asyncio.sleep(1)
 
                             try:
@@ -313,7 +318,7 @@ async def game(ctx):
 
         async def button_team_callback(interaction):
             if str(interaction.user) == user_name:
-                embedteam = await teams.get_All(user_id)
+                embed_team = await teams.getAll(user_id)
 
                 check_cooldown = cooldown.check(user_name)
 
@@ -339,9 +344,9 @@ async def game(ctx):
                     view.add_item(button_play)
 
                 if description != "":
-                    embedteam.add_field(name="Cooldown", value=description)
+                    embed_team.add_field(name="Cooldown", value=description)
 
-                await showmenu.edit_original_message(view=view, embed=embedteam)
+                await showmenu.edit_original_message(view=view, embed=embed_team)
                 await interaction.response.defer()
 
         async def button_nfts_callback(interaction):
@@ -351,7 +356,7 @@ async def game(ctx):
 
                 await interaction.response.defer()
 
-                playerslist = await nfts.get(user_id, indice)
+                list_players = await nfts.get(user_id, indice)
 
                 async def nftembed(playerslist, indice):
                     default_color = 0xffff00
@@ -479,7 +484,7 @@ async def game(ctx):
                         elif page == "prev":
                             indice -= 1
 
-                        embednfts, viewnfts = await nftembed(playerslist, indice)
+                        embednfts, viewnfts = await nftembed(list_players, indice)
 
 
                         await showmenu.edit_original_message(view=viewnfts, embed=embednfts)
@@ -490,7 +495,7 @@ async def game(ctx):
                 button_next.callback = button_move_callback
                 button_previous.callback = button_move_callback
 
-                embednfts, viewnfts = await nftembed(playerslist, indice)
+                embednfts, viewnfts = await nftembed(list_players, indice)
 
                 await showmenu.edit_original_message(view=viewnfts, embed=embednfts)
                 #await interaction.response.defer()
@@ -685,7 +690,6 @@ async def game(ctx):
                 viewnt.add_item(button_ntplayers)
 
                 await showmenu.edit_original_message(view=viewnt, embed=embedteam)
-
                 await interaction.response.defer()
 
 
@@ -706,7 +710,7 @@ async def game(ctx):
                 viewlead.add_item(button_return)
 
                 embedlead = await leaderboards.get(user_id)
-                eventlist = await events.get("vs")
+                eventlist = await events.get("all")
                 i = 1
 
                 button_global = Button(label="Global", style=discord.ButtonStyle.blurple,
@@ -784,7 +788,7 @@ async def game(ctx):
 
                 default_color = 0x00ff00
                 embedevent = discord.Embed(
-                    title="Events", description="Below the list of current events", color=default_color)
+                    title="Events", description="Below the list of current eventName", color=default_color)
 
                 for event in eventlist:
                     code = event.code
@@ -813,7 +817,7 @@ async def game(ctx):
 
                 name = name.replace("*", "")
                 await players.recruit(user_id, num, name, ovr, pos, nat)
-                embedteam = await teams.get_All(user_id)
+                embedteam = await teams.getAll(user_id)
 
                 view = View()
                 view.add_item(button_team)
@@ -868,7 +872,7 @@ async def game(ctx):
 
         check_cooldown = cooldown.check(user_name)
 
-        view = viewdefault
+        view = view_def
         if "scout" in check_cooldown.keys():
             end_cooldown = check_cooldown["scout"]
             value = "Scout until " + end_cooldown
