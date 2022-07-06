@@ -236,8 +236,8 @@ async def simulate(id, vs, event):
             if sort == "byPlayer":
                 new_line = str(newgoals) + "," + team + "," + player + ",\n"
                 for line in playerfile:
-                    fplayer = line.split(",")[1]
-                    fteam = line.split(",")[2]
+                    fteam = line.split(",")[1]
+                    fplayer = line.split(",")[2]
 
                     if (fplayer == player) and (fteam == team):
                         fgoals = int(line.split(",")[0])

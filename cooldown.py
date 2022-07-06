@@ -39,8 +39,8 @@ def add_cd_scout(user):
     on_cooldown_scout[user] = datetime.datetime.now()
 
 def add_cd_match(user):
-    #if "KevinKazama" not in user:
-    on_cooldown_match[user] = datetime.datetime.now()
+    if "KevinKazama" not in user:
+        on_cooldown_match[user] = datetime.datetime.now()
 
 
 

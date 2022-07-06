@@ -30,7 +30,7 @@ async def get(i):
                 team = line.split(",")[1]
                 if leaderboard == "byPlayer":
                     name = line.split(",")[2]
-                    embedscore = embedscore + "**"+ str(number) + "** : " + name + " - *" + team + "*\n"
+                    embedscore = embedscore + "**"+ str(number) + "** : " + name + " (*" + team + "*)\n"
                 else:
                     embedscore = embedscore + "**"+ str(number) + "** : "+team+"\n"
                 indice += 1
