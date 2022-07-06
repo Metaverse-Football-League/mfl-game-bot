@@ -151,40 +151,38 @@ async def game(ctx):
                     "you have a lot of job to do with them. \n\n" \
                     "But, if you prefer to play with me here, well, you're the **boss**.\n\n" \
                     "Let me remind you what the buttons below are for. \n" \
-                    "**Team** : Show your line-up \n" \
-                    "**Scout** : Find a non-NFT player and let you the possibility to recruit him. \n" \
+                    "**Manage my Team** : Access to your line-up \n" \
+                    "---> **My MFL Players** : You have a MFL player in your wallet ? Put him in your team ! \n" \
+                    "---> **Scout** : Find a non-NFT player and let you the possibility to recruit him. \n" \
                     "**Play** : Send your players on the field against another team \n" \
                     "**Events** : List current eventName... more eventName, more fun ? \n" \
-                    "**Leaderboard** : Is there a world where your forward is the best scorer of the game ? \n" \
-                    "**NFT** : You have a MFL player in your wallet ? Put him in your team ! \n" \
-                    "**National Team** : Bring your country into the top of the world !"
+                    "**Leaderboard** : Is there a world where your forward is the best scorer of the game ?"
+        #"**National Team** : Bring your country into the top of the world !"
         embedmenu.add_field(name="Hello coach "+user_name.split("#")[0]+ " !", value=description, inline=True)
         embedmenu.set_thumbnail(url="")
 
-        button_play = Button(label="Play", style=discord.ButtonStyle.green, custom_id="play", emoji="⚽")
+        button_play = Button(label="Play", style=discord.ButtonStyle.blurple, custom_id="play", emoji="⚽")
         button_scout = Button(label="Scout", style=discord.ButtonStyle.green, custom_id="scout", emoji="👨")
-        button_nfts = Button(label="My MFL Players", style=discord.ButtonStyle.blurple, row=2, custom_id="nfts", emoji="🎉")
-        button_nt = Button(label="National Team", style=discord.ButtonStyle.blurple,
+        button_nfts = Button(label="My MFL Players", style=discord.ButtonStyle.green, custom_id="nfts", emoji="🎉")
+        button_nt = Button(label="National Team", style=discord.ButtonStyle.green,
                            row=2, custom_id="nt", emoji="🎌")
-        button_team = Button(label="Team", style=discord.ButtonStyle.green, custom_id="team", emoji="👥")
+        button_manage_team = Button(label="Manage my Team", style=discord.ButtonStyle.green, custom_id="manage_team", emoji="👥")
         button_recruit = Button(label="Recruit", style=discord.ButtonStyle.green, custom_id="recruit", emoji="✅")
         button_replace = Button(label="Replace", style=discord.ButtonStyle.green, custom_id="replace", emoji="✅")
-        button_return = Button(label="Return", style=discord.ButtonStyle.grey, custom_id="return", emoji="❌")
-        button_finishmatch = Button(label="Skip", style=discord.ButtonStyle.blurple, custom_id="finishmatch")
-        button_leaderboard = Button(label="Leaderboard", style=discord.ButtonStyle.grey, row=1, custom_id="leaderboard",
+        button_return = Button(label="Return", style=discord.ButtonStyle.grey, custom_id="return", emoji="⬅", row=3)
+        button_finishmatch = Button(label="Skip", style=discord.ButtonStyle.green, custom_id="finishmatch")
+        button_leaderboard = Button(label="Leaderboard", style=discord.ButtonStyle.green, row=1, custom_id="leaderboard",
                                     emoji="🏆")
-        button_events = Button(label="Events", style=discord.ButtonStyle.blurple, row=1, custom_id="eventName", emoji="⭐")
+        button_events = Button(label="Events", style=discord.ButtonStyle.green, row=1, custom_id="eventName", emoji="⭐")
 
         view_def = View()
-        view_def.add_item(button_team)
+        view_def.add_item(button_manage_team)
         view_def.add_item(button_events)
         view_def.add_item(button_leaderboard)
-        view_def.add_item(button_nfts)
-        view_def.add_item(button_nt)
 
         view_match = View()
         view_match.add_item(button_finishmatch)
-        view_match.add_item(button_team)
+        view_match.add_item(button_return)
 
         skip = 0
 
@@ -316,18 +314,47 @@ async def game(ctx):
                 if button_ev5:
                     button_ev5.callback = button_vs_callback
 
-        async def button_team_callback(interaction):
+        async def button_return_callback(interaction):
             if str(interaction.user) == user_name:
                 embed_team = await teams.getAll(user_id)
 
                 check_cooldown = cooldown.check(user_name)
 
                 view = View()
-                view.add_item(button_team)
+                view.add_item(button_manage_team)
                 view.add_item(button_events)
                 view.add_item(button_leaderboard)
+                #view.add_item(button_nt)
+
+                description = ""
+
+                if "scout" in check_cooldown.keys():
+                    end_cooldown = check_cooldown["scout"]
+                    description = description + "Scout until "+end_cooldown+" \n"
+
+
+                if "match" in check_cooldown.keys():
+                    end_cooldown = check_cooldown["match"]
+                    description = description + "Match until " + end_cooldown
+
+                else:
+                    view.add_item(button_play)
+
+                if description != "":
+                    embed_team.add_field(name="Cooldown", value=description)
+
+                await showmenu.edit_original_message(view=view, embed=embed_team)
+                await interaction.response.defer()
+
+        async def button_manage_team_callback(interaction):
+            if str(interaction.user) == user_name:
+                embed_team = await teams.getAll(user_id)
+
+                check_cooldown = cooldown.check(user_name)
+
+                view = View()
+                view.add_item(button_return)
                 view.add_item(button_nfts)
-                view.add_item(button_nt)
 
                 description = ""
                 if "scout" in check_cooldown.keys():
@@ -442,13 +469,9 @@ async def game(ctx):
                                     title="Error", description="This player is already in your team", color=default_color)
 
                                 view = View()
-                                view.add_item(button_team)
+                                view.add_item(button_return)
                                 view.add_item(button_scout)
-                                view.add_item(button_play)
-                                view.add_item(button_events)
-                                view.add_item(button_leaderboard)
                                 view.add_item(button_nfts)
-                                view.add_item(button_nt)
 
                                 await showmenu.edit_original_message(view=view, embed=embedscout)
                                 await interaction.response.defer()
@@ -616,12 +639,7 @@ async def game(ctx):
                                             color=default_color)
 
                                         view = View()
-                                        view.add_item(button_team)
-                                        view.add_item(button_scout)
-                                        view.add_item(button_play)
-                                        view.add_item(button_events)
-                                        view.add_item(button_leaderboard)
-                                        view.add_item(button_nfts)
+                                        view.add_item(button_return)
                                         view.add_item(button_nt)
 
                                         await showmenu.edit_original_message(view=view, embed=embedscout)
@@ -820,13 +838,9 @@ async def game(ctx):
                 embedteam = await teams.getAll(user_id)
 
                 view = View()
-                view.add_item(button_team)
+                view.add_item(button_return)
                 view.add_item(button_scout)
-                view.add_item(button_play)
-                view.add_item(button_events)
-                view.add_item(button_leaderboard)
                 view.add_item(button_nfts)
-                view.add_item(button_nt)
 
                 await showmenu.edit_original_message(view=view, embed=embedteam)
                 await interaction.response.defer()
@@ -848,12 +862,7 @@ async def game(ctx):
                 embedteam = await nations.getAll(nat)
 
                 view = View()
-                view.add_item(button_team)
-                view.add_item(button_scout)
-                view.add_item(button_play)
-                view.add_item(button_events)
-                view.add_item(button_leaderboard)
-                view.add_item(button_nfts)
+                view.add_item(button_return)
                 view.add_item(button_nt)
 
                 await showmenu.edit_original_message(view=view, embed=embedteam)
@@ -862,11 +871,12 @@ async def game(ctx):
         button_play.callback = button_play_callback
         button_events.callback = button_events_callback
         button_leaderboard.callback = button_leaderboard_callback
-        button_team.callback = button_team_callback
+        #button_team.callback = button_team_callback
+        button_manage_team.callback = button_manage_team_callback
         button_scout.callback = button_scout_callback
         button_recruit.callback = button_recruit_callback
         button_replace.callback = button_replace_callback
-        button_return.callback = button_team_callback
+        button_return.callback = button_return_callback
         button_nfts.callback = button_nfts_callback
         button_nt.callback = button_nt_callback
 
@@ -877,14 +887,11 @@ async def game(ctx):
             end_cooldown = check_cooldown["scout"]
             value = "Scout until " + end_cooldown
             embedmenu.add_field(name="Cooldown", value=value)
-        else:
-            view.add_item(button_scout)
 
         if "match" in check_cooldown.keys():
             end_cooldown = check_cooldown["match"]
             value = "Match until " + end_cooldown
             embedmenu.add_field(name="Cooldown", value=value)
-
         else:
             view.add_item(button_play)
         embedmenu.set_thumbnail(url="https://i.ibb.co/hV3dymm/mfl-Game-Bot.png")
