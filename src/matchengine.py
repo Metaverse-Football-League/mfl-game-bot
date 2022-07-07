@@ -169,7 +169,8 @@ async def simulate(id, vs, event):
     eventlist = []
     curevent = "\u200b"
 
-    commentary = commentaries.getCommentary('matchStart', {'HOME_TEAM': teamsname.home, 'AWAY_TEAM': teamsname.away})
+    startPlayer = playershome[randint(2,11)]
+    commentary = commentaries.getCommentary('matchStart', {'HOME_TEAM': teamsname.home, 'AWAY_TEAM': teamsname.away, 'START_PLAYER_NAME': startPlayer.displayName})
 
     def get_actions(team):
         ## Define scoring probabilities
@@ -330,7 +331,7 @@ async def simulate(id, vs, event):
 
                 if what == "Shoot":
 
-                    commentary = commentaries.getCommentary('shoot', {'PLAYER_NAME': whoplay})
+                    commentary = commentaries.getCommentary('shoot', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
                     matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
                     eventlist.append(matchevent)
 
@@ -424,9 +425,9 @@ async def play(id, vs, events):
     away_name = eventlist[0].teams.away
     commentary = eventlist[0].commentary
 
-    description_start = "Welcome to the match !\nToday, **" + home_name + "** will face **" + away_name + "**.\n\nThe teams enter the " \
+    description_start = "Welcome to the match !\nToday, *" + home_name + "* will face *" + away_name + "*.\n\nThe teams enter the " \
                                                                                                     "field... let's go! "
-    description_default = "Welcome to the match !\nToday, **" + home_name + "** will face **" + away_name + "**.\n"
+    description_default = "Welcome to the match !\nToday, *" + home_name + "* will face *" + away_name + "*.\n"
 
     note = int(eventlist[0].note)
     if note == 1:
@@ -492,7 +493,7 @@ async def play(id, vs, events):
         embedscore.add_field(name="Commentary", value=commentary, inline=False)
         if len(oldcommentaries) > 0:
             embedscore.add_field(name="\u200b", value=lastcommentaries, inline=False)
-        embedscore.add_field(name="\u200b", value="**Goals**", inline=True)
+        embedscore.add_field(name="\u200b", value="**Goals**", inline=False)
 
         goals = x.event
 
@@ -515,7 +516,7 @@ async def play(id, vs, events):
 
         embedscore.add_field(name="\u200b", value=hgoal, inline=True)
         embedscore.add_field(name="\u200b", value=agoal, inline=True)
-        embedscore.add_field(name="\u200b", value="**Events**", inline=True)
+        embedscore.add_field(name="\u200b", value="**Events**", inline=False)
         embedscore.add_field(name="\u200b", value=hcard, inline=True)
         embedscore.add_field(name="\u200b", value=acard, inline=True)
         embedscore.add_field(name="Match Note", value=note, inline=False)
