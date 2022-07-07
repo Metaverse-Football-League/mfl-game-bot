@@ -13,6 +13,7 @@ import teams
 import cooldown
 import nations
 from config import config
+import discordUtils
 
 ### Prerequisites
 # Discord2 Python library (py-cord)
@@ -76,8 +77,8 @@ async def create(ctx):
             team_id = user_id
             if user_id in tfile.read():
                 if str(user_id) in adminid:
-                    team_id = str(randint(1, 9999))
-                    teamname = "Team"+str(team_id)
+                    team_id = str(randint(1, 999999))
+                    teamname = "Team"+str(randint(1,1000))
                     tfile.write(teamname + "," + team_id + ",no,3,BOT,\n")
                     await players.create(team_id, username)
                     await ctx.respond("Team " + teamname + " created !", ephemeral=True)
@@ -331,12 +332,12 @@ async def game(ctx):
 
                 if "scout" in check_cooldown.keys():
                     end_cooldown = check_cooldown["scout"]
-                    description = description + "Scout until "+end_cooldown+" \n"
+                    description = description + "Scout until " + discordUtils.formatDateTimeForDiscord(end_cooldown) + " \n"
 
 
                 if "match" in check_cooldown.keys():
                     end_cooldown = check_cooldown["match"]
-                    description = description + "Match until " + end_cooldown
+                    description = description + "Match until " + discordUtils.formatDateTimeForDiscord(end_cooldown)
 
                 else:
                     view.add_item(button_play)
@@ -360,13 +361,13 @@ async def game(ctx):
                 description = ""
                 if "scout" in check_cooldown.keys():
                     end_cooldown = check_cooldown["scout"]
-                    description = description + "Scout until "+end_cooldown+" \n"
+                    description = description + "Scout until " + discordUtils.formatDateTimeForDiscord(end_cooldown) + " \n"
                 else:
                     view.add_item(button_scout)
 
                 if "match" in check_cooldown.keys():
                     end_cooldown = check_cooldown["match"]
-                    description = description + "Match until " + end_cooldown
+                    description = description + "Match until " + discordUtils.formatDateTimeForDiscord(end_cooldown)
 
                 else:
                     view.add_item(button_play)
@@ -886,12 +887,12 @@ async def game(ctx):
         view = view_def
         if "scout" in check_cooldown.keys():
             end_cooldown = check_cooldown["scout"]
-            value = "Scout until " + end_cooldown
+            value = "Scout until " + discordUtils.formatDateTimeForDiscord(end_cooldown)
             embedmenu.add_field(name="Cooldown", value=value)
 
         if "match" in check_cooldown.keys():
             end_cooldown = check_cooldown["match"]
-            value = "Match until " + end_cooldown
+            value = "Match until " + discordUtils.formatDateTimeForDiscord(end_cooldown)
             embedmenu.add_field(name="Cooldown", value=value)
         else:
             view.add_item(button_play)

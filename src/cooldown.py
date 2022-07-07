@@ -13,7 +13,7 @@ def end_cooldown(user, cd_date, cd_dict):
         return("no")
     else:
         cdtime = cd_date + datetime.timedelta(minutes=cooldown)
-        return(str(cdtime).split(" ")[1].split(".")[0])
+        return(cdtime)
 
 
 def check(user):
@@ -41,6 +41,3 @@ def add_cd_scout(user):
 def add_cd_match(user):
     if "KevinKazama" not in user:
         on_cooldown_match[user] = datetime.datetime.now()
-
-
-
