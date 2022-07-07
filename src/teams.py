@@ -1,10 +1,11 @@
 from random import sample
 import discord
 import players
+from config import config
 
 ## Teams
 # Name, user_id, boolean(0 : bot, 1 : player, form)
-f_teams = "teams.csv"
+f_teams = config["dataPath"] + "teams.csv"
 
 async def get(id):
     print("called")

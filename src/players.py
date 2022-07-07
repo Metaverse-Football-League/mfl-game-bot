@@ -1,9 +1,9 @@
 import discord
 import names
 from random import randint, choice
+from config import config
 
-f_players = "players.csv"
-
+f_players = config["dataPath"] + "players.csv"
 
 class Player:
     def __init__(self, displayName, ovr, pos, teamid, nat, rarity, form, number, isYellowCard, isRedCard):
@@ -99,7 +99,7 @@ async def get(id):
         return playerlist
 
 async def getnation(nation):
-    with open("selections/active_team_"+nation.upper(), "r+") as pfile:
+    with open(config["dataPath"] + "selections/active_team_"+nation.upper(), "r+") as pfile:
         playerfile = pfile.readlines()
         playerlist = []
         i = 0

@@ -1,9 +1,9 @@
 import discord
 import events
-
+from config import config
 
 async def get(i):
-    f_goals = "goals.csv"
+    f_goals = config["dataPath"] + "goals.csv"
     leaderboard = "byPlayer"
     reward = 0
     nbgoal = 0
@@ -12,7 +12,7 @@ async def get(i):
         event = await events.getbyCode(i)
         leaderboard = event[0].leaderboard
         reward = event[0].reward
-        f_goals = "goals_"+i+".csv"
+        f_goals = config["dataPath"] + "goals_" + i + ".csv"
         print(f_goals)
 
     with open(f_goals, "r") as tgoals:

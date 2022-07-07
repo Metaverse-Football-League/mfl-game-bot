@@ -21,14 +21,14 @@ from config import config
 
 ### Files
 ## Players (DisplayName, OVR, Position, Owner, nationality, nft, rarity)
-f_players = "players.csv"
+f_players = config["dataPath"] + "players.csv"
 ## Teams
 # Name, user_id, boolean(0 : bot, 1 : player, form)
-f_teams = "teams.csv"
+f_teams = config["dataPath"] + "teams.csv"
 ## Goal scorers (number, name, team)
-f_goals = "goals.csv"
+f_goals = config["dataPath"] + "goals.csv"
 ## Event (name, desc, status)
-f_events = "events.csv"
+f_events = config["dataPath"] + "events.csv"
 
 #load_dotenv(dotenv_path="config")
 intents = discord.Intents.all()
@@ -645,7 +645,7 @@ async def game(ctx):
 
                                         await showmenu.edit_original_message(view=view, embed=embedscout)
                                         await interaction.response.defer()
-                                    
+
                                     else:
 
                                         embedscout = await nations.search(nation, name, ovr, pos, prefix_nat, rarity)
@@ -895,7 +895,7 @@ async def game(ctx):
             embedmenu.add_field(name="Cooldown", value=value)
         else:
             view.add_item(button_play)
-        embedmenu.set_thumbnail(url="https://i.ibb.co/hV3dymm/mfl-Game-Bot.png")
+        embedmenu.set_image(url="https://d13e14gtps4iwl.cloudfront.net/discord/logo.jpg")
 
         showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=True)
 
