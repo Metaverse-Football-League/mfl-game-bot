@@ -76,7 +76,8 @@ async def create(ctx):
             team_id = user_id
             if user_id in tfile.read():
                 if str(user_id) in adminid:
-                    team_id = str(randint(1, 999999))
+                    team_id = str(randint(1, 9999))
+                    teamname = "Team"+str(team_id)
                     tfile.write(teamname + "," + team_id + ",no,3,BOT,\n")
                     await players.create(team_id, username)
                     await ctx.respond("Team " + teamname + " created !", ephemeral=True)
@@ -830,7 +831,7 @@ async def game(ctx):
                 pos = playersinfos[2]
                 ovr = playersinfos[3].replace("`", "")
                 name = playersinfos[5] + " " + playersinfos[6]
-                if len(playersinfos) > 6:
+                if len(playersinfos) > 7:
                     name = name + " " + playersinfos[7]
 
                 name = name.replace("*", "")
