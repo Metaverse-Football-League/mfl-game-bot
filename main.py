@@ -644,7 +644,7 @@ async def game(ctx):
 
                                         await showmenu.edit_original_message(view=view, embed=embedscout)
                                         await interaction.response.defer()
-                                    
+
                                     else:
 
                                         embedscout = await nations.search(nation, name, ovr, pos, prefix_nat, rarity)
@@ -894,7 +894,7 @@ async def game(ctx):
             embedmenu.add_field(name="Cooldown", value=value)
         else:
             view.add_item(button_play)
-        embedmenu.set_thumbnail(url="https://i.ibb.co/hV3dymm/mfl-Game-Bot.png")
+        embedmenu.set_image(url="https://d13e14gtps4iwl.cloudfront.net/discord/logo.jpg")
 
         showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=True)
 
