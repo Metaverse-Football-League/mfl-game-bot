@@ -1,9 +1,10 @@
 import discord
 from players import Player
+from config import config
 
-f_nations = "nations.csv"
-teams_selections = "selections/team_"
-active_teams = "selections/active_team_"
+f_nations = config["dataPath"] + "nations.csv"
+teams_selections = config["dataPath"] + "selections/team_"
+active_teams = config["dataPath"] + "selections/active_team_"
 
 nations = {
     'ALGERIA': 'dz',

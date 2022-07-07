@@ -1,14 +1,14 @@
 import random
 import discord
 from random import randint
-
 import events
 import teams
 import players
 import commentaries
 import nations
+from config import config
 
-f_goals = "goals.csv"
+f_goals = config["dataPath"] + "goals.csv"
 
 class Teams:
     def __init__(self, home, away):
@@ -225,7 +225,7 @@ async def simulate(id, vs, event):
         if event == "no":
             pfile = open(f_goals, "r+")
         else:
-            pfile = open("goals_" + event + ".csv", "r+")
+            pfile = open(config["dataPath"] + "goals_" + event + ".csv", "r+")
 
         playerfile = pfile.readlines()
         playerlist = []
