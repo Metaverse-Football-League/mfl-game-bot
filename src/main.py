@@ -21,14 +21,14 @@ from config import config
 
 ### Files
 ## Players (DisplayName, OVR, Position, Owner, nationality, nft, rarity)
-f_players = "players.csv"
+f_players = config["dataPath"] + "players.csv"
 ## Teams
 # Name, user_id, boolean(0 : bot, 1 : player, form)
-f_teams = "teams.csv"
+f_teams = config["dataPath"] + "teams.csv"
 ## Goal scorers (number, name, team)
-f_goals = "goals.csv"
+f_goals = config["dataPath"] + "goals.csv"
 ## Event (name, desc, status)
-f_events = "events.csv"
+f_events = config["dataPath"] + "events.csv"
 
 #load_dotenv(dotenv_path="config")
 intents = discord.Intents.all()
@@ -830,7 +830,7 @@ async def game(ctx):
                 pos = playersinfos[2]
                 ovr = playersinfos[3].replace("`", "")
                 name = playersinfos[5] + " " + playersinfos[6]
-                if len(playersinfos) > 6:
+                if len(playersinfos) > 7:
                     name = name + " " + playersinfos[7]
 
                 name = name.replace("*", "")

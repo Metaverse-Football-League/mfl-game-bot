@@ -1,8 +1,7 @@
 import requests
-
 from config import config
 
-players_file = "selections/all_players.csv"
+players_file = config["dataPath"] + "selections/all_players.csv"
 
 nations = {
     'ALGERIA': 'dz',
@@ -144,7 +143,7 @@ for x in nations.keys():
 for x in nations.keys():
     players_number = ["No", "No", "No", "No", "No", "No", "No", "No", "No", "No", "No"]
     i = 0
-    filepath = "selections/active_team_"+x
+    filepath = config["dataPath"] + "selections/active_team_"+x
     with open(filepath, "a") as tfile:
         for line in reversed(open(players_file).readlines()):
             if i < 11:
