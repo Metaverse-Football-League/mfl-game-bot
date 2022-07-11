@@ -159,11 +159,11 @@ async def generate(i):
     elif i == 5:
         position = "rb"
     elif i == 6:
-        position = "cm"
+        position = "dm"
     elif i == 7:
         position = "cm"
     elif i == 8:
-        position = "am"
+        position = "cm"
     elif i == 9:
         position = "lw"
     elif i == 10:
@@ -210,21 +210,21 @@ async def scout(id):
             old_pos = p_info[4].pos.upper()
             old_nat = p_info[4].nat
             number = 4
-    elif number in (6, 7):
-        ovr6 = p_info[6].ovr
-        ovr7 = p_info[7].ovr
+    elif number in (7, 8):
+        ovr6 = p_info[7].ovr
+        ovr7 = p_info[8].ovr
         if ovr6 < ovr7:
-            old_name = p_info[6].displayName
-            old_ovr = p_info[6].ovr
-            old_pos = p_info[6].pos.upper()
-            old_nat = p_info[6].nat
-            number = 6
-        else:
             old_name = p_info[7].displayName
             old_ovr = p_info[7].ovr
             old_pos = p_info[7].pos.upper()
             old_nat = p_info[7].nat
             number = 7
+        else:
+            old_name = p_info[8].displayName
+            old_ovr = p_info[8].ovr
+            old_pos = p_info[8].pos.upper()
+            old_nat = p_info[8].nat
+            number = 8
     else:
         old_name = p_info[number].displayName
         old_ovr = p_info[number].ovr

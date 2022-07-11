@@ -213,9 +213,9 @@ async def search(team, name, ovr, pos, nat, rarity):
         'RB': 5,
         'RWB': 5,
         'CDM': 6,
-        'CM': 6,
-        'CAM': 8,
-        'AM': 8,
+        'CM': 7,
+        'CAM': 7,
+        'AM': 7,
         'LW': 9,
         'LM': 9,
         'RW': 10,
@@ -280,20 +280,20 @@ async def search(team, name, ovr, pos, nat, rarity):
             old_pos = p_info[3].pos.upper()
             old_nat = p_info[3].nat
             number = 4
-    elif number in (6, 7):
-        ovr6 = p_info[5].ovr
-        ovr7 = p_info[6].ovr
+    elif number in (7, 8):
+        ovr6 = p_info[6].ovr
+        ovr7 = p_info[7].ovr
         if ovr6 < ovr7:
-            old_name = p_info[5].displayName
-            old_ovr = p_info[5].ovr
-            old_pos = p_info[5].pos.upper()
-            old_nat = p_info[5].nat
-            number = 6
-        else:
             old_name = p_info[6].displayName
             old_ovr = p_info[6].ovr
             old_pos = p_info[6].pos.upper()
             old_nat = p_info[6].nat
+            number = 7
+        else:
+            old_name = p_info[7].displayName
+            old_ovr = p_info[7].ovr
+            old_pos = p_info[7].pos.upper()
+            old_nat = p_info[7].nat
             number = 7
     else:
         old_name = p_info[old_number].displayName
