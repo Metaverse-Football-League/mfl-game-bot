@@ -147,17 +147,15 @@ async def game(ctx):
         default_color = 0x00ff00
         embedmenu = discord.Embed(
             title='MFL Discord Game', color=default_color)
-        description = "\nYour players are currently in the training field... \n" \
-                    "In your place, I'll go and see what's going on. *Missed passes* and *uncontrolled shots*... " \
-                    "you have a lot of job to do with them. \n\n" \
-                    "But, if you prefer to play with me here, well, you're the **boss**.\n\n" \
-                    "Let me remind you what the buttons below are for. \n" \
-                    "**Manage my Team** : Access to your line-up \n" \
-                    "---> **My MFL Players** : You have a MFL player in your wallet ? Put him in your team ! \n" \
-                    "---> **Scout** : Find a non-NFT player and let you the possibility to recruit him. \n" \
-                    "**Play** : Send your players on the field against another team \n" \
-                    "**Events** : List current eventName... more eventName, more fun ? \n" \
-                    "**Leaderboard** : Is there a world where your forward is the best scorer of the game ?"
+        description = "\nYour players are currently in the training field...\n" \
+                    "If I were you, I'll have a look at what's going on: *Missed passes, uncontrolled shots*...\n\n" \
+                    "You have a lot of to do with them. It's not my business, you're the boss here!\n\n" \
+                    "Let me remind you what the buttons below are for:\n" \
+                    "**👥 Manage my Team** : Access to your line-up\n" \
+                    "╠═ **🎉 My MFL Players**: You have a MFL player in your wallet? Put him in your team!\n" \
+                    "╚═ **👨 Scout**: Find a non-NFT player and recruit him if he is good enough :fire:.\n" \
+                    "**⚽ Play**: Send your players on the field against another team.\n" \
+                    "**🏆 Leaderboard**: Is there a world where your forward is the best scorer of the game?"
         #"**National Team** : Bring your country into the top of the world !"
         embedmenu.add_field(name="Hello coach "+user_name.split("#")[0]+ " !", value=description, inline=True)
         embedmenu.set_thumbnail(url="")
@@ -514,8 +512,8 @@ async def game(ctx):
                         await showmenu.edit_original_message(view=viewnfts, embed=embednfts)
                         await interaction.response.defer()
 
-                button_previous = Button(style=discord.ButtonStyle.blurple, custom_id="prev", emoji="◀")
-                button_next = Button(style=discord.ButtonStyle.blurple, custom_id="next", emoji="▶")
+                button_previous = Button(style=discord.ButtonStyle.green, custom_id="prev", emoji="◀")
+                button_next = Button(style=discord.ButtonStyle.green, custom_id="next", emoji="▶")
                 button_next.callback = button_move_callback
                 button_previous.callback = button_move_callback
 
