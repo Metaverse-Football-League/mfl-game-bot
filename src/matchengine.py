@@ -9,6 +9,7 @@ import nations
 from config import config
 
 f_goals = config["dataPath"] + "goals.csv"
+f_points = config["dataPath"] + "points.csv"
 
 class Teams:
     def __init__(self, home, away):
@@ -403,6 +404,37 @@ async def simulate(id, vs, event):
         note = note + 1
     elif (int(score_away + score_home) <= 2) and (note > 3):
         note = note - 1
+
+    ### Points Leaderboard
+    async def update_points_leaderboard(team, addpoints):
+        status = 0
+        points_file = open(f_points, "r+")
+        lines = []
+        for line in points_file:
+            fteam = line.split(",")[1]
+            if fteam == team:
+                points = int(line.split(",")[0])
+                points = points + addpoints
+                new_line = str(points) + "," + team + ",\n"
+                replace = line.replace(line, new_line)
+                line = replace
+                if "," not in line:
+                    line = ",,,,\n"
+                status = 1
+            lines.append(line)
+        if status == 0:
+            new_line = str(addpoints) + "," + team + ",\n"
+            points_file.write(new_line)
+        else:
+            points_file.seek(0)
+            points_file.truncate(0)
+            points_file.writelines(lines)
+
+    if event == "no":
+        if score_home > score_away:
+            await update_points_leaderboard(team_name_home, 3)
+        elif score_home == score_away:
+            await update_points_leaderboard(team_name_home, 1)
 
     commentaryKey = 'homeWin' if score_home > score_away else "awayWin" if score_home < score_away else "draw"
     commentary = commentaries.getCommentary(commentaryKey, {'HOME_TEAM': team_name_home, 'AWAY_TEAM': team_name_away})

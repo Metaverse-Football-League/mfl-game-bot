@@ -733,9 +733,12 @@ async def game(ctx):
                 eventlist = await events.get("all")
                 i = 1
 
-                button_global = Button(label="Global", style=discord.ButtonStyle.blurple,
+                button_global = Button(label="Goals", style=discord.ButtonStyle.blurple,
                                         row=1, custom_id="goals")
+                button_points = Button(label="Points", style=discord.ButtonStyle.blurple,
+                                        row=1, custom_id="points")
                 viewlead.add_item(button_global)
+                viewlead.add_item(button_points)
 
                 if eventlist[0] != "":
                     button_ev1 = None
@@ -784,6 +787,7 @@ async def game(ctx):
 
 
                 button_global.callback = button_leads_callback
+                button_points.callback = button_leads_callback
                 if button_ev1:
                     button_ev1.callback = button_leads_callback
                 if button_ev2:
