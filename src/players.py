@@ -47,7 +47,7 @@ async def create(id, manager):
                 ovr = randint(65, 82)
             else:
                 # Value for players generate by Discord User creation team (Issue #2)
-                ovr = randint(25, 35)
+                ovr = randint(25, 30)
 
             displayName = names.get_full_name(gender='male')
             if i == 1:
