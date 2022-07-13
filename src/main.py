@@ -150,7 +150,7 @@ async def game(ctx):
             title='MFL Discord Game', color=default_color)
         description = "\nYour players are currently in the training field... \n" \
                     "In your place, I'll go and see what's going on. *Missed passes* and *uncontrolled shots*... " \
-                    "you have a lot of job to do with them. \n\n" \
+                    "It seems you have a lot to do with them. But it's not my business, you're the boss here! 😉. \n\n" \
                     "But, if you prefer to play with me here, well, you're the **boss**.\n\n" \
                     "Let me remind you what the buttons below are for. \n" \
                     "**Manage my Team** : Access to your line-up \n" \
