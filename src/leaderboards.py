@@ -37,7 +37,7 @@ async def get(i):
                     name = line.split(",")[2]
                     embedscore = embedscore + "**"+ str(number) + "** : " + name + " (*" + team + "*)\n"
                 else:
-                    embedscore = embedscore + "**"+ str(number) + "** : "+team+"\n"
+                    embedscore = embedscore + team + " - **"+ str(number) + "pts**\n"
                 indice += 1
 
         if embedscore == "":
@@ -53,7 +53,7 @@ async def get(i):
             embedlead = discord.Embed(
                 title="Leaderboards", description="Top 10", color=default_color)
 
-        embedlead.add_field(name="Charts", value=embedscore)
+        embedlead.add_field(name="Ranking", value=embedscore)
         if int(reward) > 0:
             embedlead.add_field(name="Road to "+str(reward)+" goals !", value=str(nbgoal)+"/"+str(reward), inline=False)
 

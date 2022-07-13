@@ -149,7 +149,7 @@ async def game(ctx):
             title='MFL Discord Game', color=default_color)
         description = "\nYour players are currently in the training field...\n" \
                     "If I were you, I'll have a look at what's going on: *Missed passes, uncontrolled shots*...\n\n" \
-                    "You have a lot of to do with them. It's not my business, you're the boss here!\n\n" \
+                    "It seems you have a lot to do with them. But it's not my business, you're the boss here! 😉\n\n" \
                     "Let me remind you what the buttons below are for:\n" \
                     "**👥 Manage my Team** : Access to your line-up\n" \
                     "╠═ **🎉 My MFL Players**: You have a MFL player in your wallet? Put him in your team!\n" \
@@ -730,11 +730,11 @@ async def game(ctx):
                 eventlist = await events.get("all")
                 i = 1
 
-                #button_global = Button(label="Goals", style=discord.ButtonStyle.blurple,
-                #                        row=1, custom_id="goals")
-                #viewlead.add_item(button_global)
+                button_global = Button(label="Scorers", style=discord.ButtonStyle.blurple,
+                                        row=1, custom_id="goals")
+                viewlead.add_item(button_global)
 
-                button_points = Button(label="Points", style=discord.ButtonStyle.blurple,
+                button_points = Button(label="Teams", style=discord.ButtonStyle.blurple,
                                                         row=1, custom_id="points")
                 viewlead.add_item(button_points)
 
@@ -784,7 +784,7 @@ async def game(ctx):
                     await interaction.response.defer()
 
 
-                #button_global.callback = button_leads_callback
+                button_global.callback = button_leads_callback
                 button_points.callback = button_leads_callback
                 if button_ev1:
                     button_ev1.callback = button_leads_callback
