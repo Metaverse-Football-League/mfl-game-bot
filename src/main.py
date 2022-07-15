@@ -447,7 +447,8 @@ async def game(ctx):
                             buttons.append(b5)
                         i += 1
                     else:
-                        description = "It seems that you don't have NFTs.\nDon't forget to link your Discord account to your Dapper Wallet."
+                        description = "It seems that you don't have NFTs.\nDon't forget to link your Discord account " \
+                                      "to your Dapper Wallet. "
 
                     embednfts.add_field(name="Players", value=description)
 
