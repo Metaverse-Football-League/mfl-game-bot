@@ -478,7 +478,6 @@ async def game(ctx):
 
                                 view = View()
                                 view.add_item(button_return)
-                                view.add_item(button_scout)
                                 view.add_item(button_nfts)
 
                                 await showmenu.edit_original_message(view=view, embed=embedscout)
