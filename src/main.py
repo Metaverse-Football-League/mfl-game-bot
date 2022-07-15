@@ -95,23 +95,27 @@ async def change(ctx, user: discord.User):
         await ctx.respond(embed=embedteam, ephemeral=False)
 
 
-@bot.command(name='match', description="Start a match !")
+@bot.command(name='match', description="Start a match !", hidden=True)
 async def match(ctx, user1: discord.User, user2: discord.User):
-    if str(ctx.channel.id) in gamechan:
+    user_id = str(ctx.interaction.user.id)
+    if (str(ctx.channel.id) in gamechan) and (user_id in adminid):
         team1 = str(user1.id)
         team2 = str(user2.id)
-        event = "no"
+        event = "match"
         view, embedmenu, match = await callmatch(team1, team2, event)
         showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=False)
 
         for x in match:
             await showmenu.edit_original_message(view=view, embed=x)
             await asyncio.sleep(1)
+    else:
+        await ctx.respond("You have no right to use this command !", ephemeral=True)
 
 
-@bot.command(name='intmatch', description="Start a match !")
+@bot.command(name='intmatch', description="Start a match !", hidden=True)
 async def intmatch(ctx, team1:str, team2:str):
-    if str(ctx.channel.id) in gamechan:
+    user_id = str(ctx.interaction.user.id)
+    if (str(ctx.channel.id) in gamechan) and (user_id in adminid):
         event = "international"
 
         view, embedmenu, match = await callmatch(team1, team2, event)
@@ -120,6 +124,8 @@ async def intmatch(ctx, team1:str, team2:str):
         for x in match:
             await showmenu.edit_original_message(view=view, embed=x)
             await asyncio.sleep(1)
+    else:
+        await ctx.respond("You have no right to use this command !", ephemeral=True)
 
 
 @bot.command(name='versus', description="Start a match !")
