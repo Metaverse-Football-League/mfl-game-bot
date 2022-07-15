@@ -61,11 +61,11 @@ async def create(id, manager):
             elif i == 5:
                 position = "rb"
             elif i == 6:
-                position = "cm"
+                position = "cdm"
             elif i == 7:
                 position = "cm"
             elif i == 8:
-                position = "am"
+                position = "cm"
             elif i == 9:
                 position = "lw"
             elif i == 10:

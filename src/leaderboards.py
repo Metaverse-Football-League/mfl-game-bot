@@ -53,7 +53,7 @@ async def get(i):
             embedlead = discord.Embed(
                 title="Leaderboards", description="Top 10", color=default_color)
 
-        embedlead.add_field(name="Charts", value=embedscore)
+        embedlead.add_field(name="Ranking", value=embedscore)
         if int(reward) > 0:
             embedlead.add_field(name="Road to "+str(reward)+" goals !", value=str(nbgoal)+"/"+str(reward), inline=False)
 
