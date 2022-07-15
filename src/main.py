@@ -70,8 +70,8 @@ async def create(ctx):
             user = ctx.interaction.user
             user_id = str(user.id)
             if user.id > 1000000:
-                username = user.nick
-                teamname = "FC "+username
+                username = user.name if user.nick is None else user.nick
+                teamname = "FC "+ username
             else:
                 username = "BOT"
             team_id = user_id
@@ -405,29 +405,30 @@ async def game(ctx):
                     b4 = None
                     b5 = None
                     i = 0
-                    indice = indice % len(playerslist)
-                    for x in playerslist[indice]:
-                        nation = x.split(",")[0]
-                        positions = x.split(",")[1]
-                        ovr = x.split(",")[2]
-                        displayName = x.split(",")[3]
-                        rarity = x.split(",")[4]
+                    if len(playerslist) > 0:
+                        indice = indice % len(playerslist)
+                        for x in playerslist[indice]:
+                            nation = x.split(",")[0]
+                            positions = x.split(",")[1]
+                            ovr = x.split(",")[2]
+                            displayName = x.split(",")[3]
+                            rarity = x.split(",")[4]
 
-                        if rarity == "common":
-                            rarity_flag = "⚪"
-                        elif rarity == "uncommon":
-                            rarity_flag = "🟢"
-                        elif rarity == "rare":
-                            rarity_flag = "🔵"
-                        elif rarity == "legend":
-                            rarity_flag = "🟣"
+                            if rarity == "common":
+                                rarity_flag = "⚪"
+                            elif rarity == "uncommon":
+                                rarity_flag = "🟢"
+                            elif rarity == "rare":
+                                rarity_flag = "🔵"
+                            elif rarity == "legend":
+                                rarity_flag = "🟣"
 
-                        if len(positions) == 3:
-                            description = description + ":flag_" + nation + ":`" + positions + " " + str(
-                                ovr) + "`" + rarity_flag + " *" + displayName + "*\n"
-                        else:
-                            description = description + ":flag_" + nation + ":`" + positions + "  " + str(
-                                ovr) + "`" + rarity_flag + " *" + displayName + "*\n"
+                            if len(positions) == 3:
+                                description = description + ":flag_" + nation + ":`" + positions + " " + str(
+                                    ovr) + "`" + rarity_flag + " *" + displayName + "*\n"
+                            else:
+                                description = description + ":flag_" + nation + ":`" + positions + "  " + str(
+                                    ovr) + "`" + rarity_flag + " *" + displayName + "*\n"
 
                         if i == 0:
                             b1 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1, custom_id="Player "+str(i))
@@ -445,12 +446,15 @@ async def game(ctx):
                             b5 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1, custom_id="Player "+str(i))
                             buttons.append(b5)
                         i += 1
+                    else:
+                        description = "It seems that you don't have NFTs.\nDon't forget to link your Discord account to your Dapper Wallet."
 
                     embednfts.add_field(name="Players", value=description)
 
                     viewnfts = View()
-                    viewnfts.add_item(button_previous)
-                    viewnfts.add_item(button_next)
+                    if len(playerslist) > 4:
+                        viewnfts.add_item(button_previous)
+                        viewnfts.add_item(button_next)
                     viewnfts.add_item(button_return)
 
                     async def button_scoutnft_callback(interaction):
