@@ -430,22 +430,22 @@ async def game(ctx):
                                 description = description + ":flag_" + nation + ":`" + positions + "  " + str(
                                     ovr) + "`" + rarity_flag + " *" + displayName + "*\n"
 
-                        if i == 0:
-                            b1 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1, custom_id="Player "+str(i))
-                            buttons.append(b1)
-                        elif i == 1:
-                            b2 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1, custom_id="Player "+str(i))
-                            buttons.append(b2)
-                        elif i == 2:
-                            b3 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1, custom_id="Player "+str(i))
-                            buttons.append(b3)
-                        elif i == 3:
-                            b4 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1, custom_id="Player "+str(i))
-                            buttons.append(b4)
-                        elif i == 4:
-                            b5 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1, custom_id="Player "+str(i))
-                            buttons.append(b5)
-                        i += 1
+                            if i == 0:
+                                b1 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1, custom_id="Player "+str(i))
+                                buttons.append(b1)
+                            elif i == 1:
+                                b2 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1, custom_id="Player "+str(i))
+                                buttons.append(b2)
+                            elif i == 2:
+                                b3 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1, custom_id="Player "+str(i))
+                                buttons.append(b3)
+                            elif i == 3:
+                                b4 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1, custom_id="Player "+str(i))
+                                buttons.append(b4)
+                            elif i == 4:
+                                b5 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1, custom_id="Player "+str(i))
+                                buttons.append(b5)
+                            i += 1
                     else:
                         description = "It seems that you don't have NFTs.\nDon't forget to link your Discord account " \
                                       "to your Dapper Wallet. "
