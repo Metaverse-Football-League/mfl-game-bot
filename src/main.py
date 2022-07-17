@@ -443,8 +443,9 @@ async def game(ctx):
                                 b5 = Button(label=displayName, style=discord.ButtonStyle.blurple, row=1, custom_id="Player "+str(i))
                                 buttons.append(b5)
                             i += 1
-                        else:
-                            description = "It seems that you don't have NFTs.\nDon't forget to link your Discord account to your Dapper Wallet."
+                    else:
+                        description = "It seems that you don't have NFTs.\nDon't forget to link your Discord account " \
+                                      "to your Dapper Wallet. "
 
                     embednfts.add_field(name="Players", value=description)
 
@@ -479,7 +480,6 @@ async def game(ctx):
 
                                 view = View()
                                 view.add_item(button_return)
-                                view.add_item(button_scout)
                                 view.add_item(button_nfts)
 
                                 await showmenu.edit_original_message(view=view, embed=embedscout)
