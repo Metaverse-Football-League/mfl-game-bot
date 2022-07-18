@@ -8,5 +8,7 @@ config = {
     "botToken": dotenvValues["BOT_TOKEN"],
     "adminId": dotenvValues["ADMIN_ID"].split(","),
     "gameChan": dotenvValues["GAME_CHAN"].split(","),
+    "cooldown_scout": dotenvValues["CD_SCOUT"],
+    "cooldown_match": dotenvValues["CD_MATCH"],
     "dataPath": "../data/",
 }
