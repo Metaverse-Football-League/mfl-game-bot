@@ -1,6 +1,6 @@
 from config import config
+import utils_file
 
-## Event (name, desc, status)
 f_events = config["dataPath"] + "events.csv"
 
 class Event:
@@ -14,53 +14,31 @@ class Event:
         self.leaderboard = leaderboard
         self.reward = reward
 
-async def get(i):
-    with open(f_events, "r") as tevents:
-        eventfile = tevents.readlines()
-        eventlist = []
+def create_event_from_csv(row, columns):
+    code = columns[0]
+    name = columns[1]
+    desc = columns[2]
+    status = columns[3]
+    kind = columns[4]
+    opponent = columns[5]
+    leaderboard = columns[6]
+    reward = columns[7]
 
-        for event in eventfile:
-            code = event.split(",")[0]
-            name = event.split(",")[1]
-            desc = event.split(",")[2]
-            status = event.split(",")[3]
-            kind = event.split(",")[4]
-            opponent = event.split(",")[5]
-            leaderboard = event.split(",")[6]
-            reward = event.split(",")[7]
+    if int(status) > 1:
+        return(None)
 
-            if int(status) > 1:
-                continue
+    return(Event(code, name, desc, status, kind, opponent, leaderboard, reward))
 
-            if i == "all":
-                mevent = Event(code, name, desc, status, kind, opponent, leaderboard, reward)
-                eventlist.append(mevent)
-            elif i == kind:
-                mevent = Event(code, name, desc, status, kind, opponent, leaderboard, reward)
-                eventlist.append(mevent)
+async def get():
+    events = utils_file.read_csv_file(create_event_from_csv, f_events)
+    return events
 
-        return eventlist
+async def get_by_code(code):
+    def create_event_from_csv_for_code(row, columns):
+        eventCode = columns[0]
+        if code != eventCode:
+            return(None)
+        return(create_event_from_csv(row, columns))
 
-async def getbyCode(i):
-    with open(f_events, "r") as tevents:
-        eventfile = tevents.readlines()
-        eventlist = []
-
-        for event in eventfile:
-            code = event.split(",")[0]
-            name = event.split(",")[1]
-            desc = event.split(",")[2]
-            status = event.split(",")[3]
-            kind = event.split(",")[4]
-            opponent = event.split(",")[5]
-            leaderboard = event.split(",")[6]
-            reward = event.split(",")[7]
-
-            if int(status) > 1:
-                continue
-
-            if i == code:
-                mevent = Event(code, name, desc, status, kind, opponent, leaderboard, reward)
-                eventlist.append(mevent)
-
-        return eventlist
+    events = utils_file.read_csv_file(create_event_from_csv_for_code, f_events)
+    return events

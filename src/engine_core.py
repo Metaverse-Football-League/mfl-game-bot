@@ -4,7 +4,7 @@ from random import randint
 import events
 import teams
 import players
-import commentaries
+import engine_commentaries
 import nations
 from config import config
 
@@ -43,7 +43,7 @@ class MatchEvent:
 
 async def simulate(id, vs, event):
     # Find player's team information
-    eventinfo = await events.getbyCode(event)
+    eventinfo = await events.get_by_code(event)
     leads = "byPlayer"
 
     if len(eventinfo) > 0:
@@ -171,7 +171,7 @@ async def simulate(id, vs, event):
     curevent = "\u200b"
 
     startPlayer = playershome[randint(2,11)]
-    commentary = commentaries.getCommentary('matchStart', {'HOME_TEAM': teamsname.home, 'AWAY_TEAM': teamsname.away, 'START_PLAYER_NAME': startPlayer.displayName})
+    commentary = commentaries.get_commentary('matchStart', {'HOME_TEAM': teamsname.home, 'AWAY_TEAM': teamsname.away, 'START_PLAYER_NAME': startPlayer.displayName})
 
     def get_actions(team):
         ## Define scoring probabilities
@@ -332,7 +332,7 @@ async def simulate(id, vs, event):
 
                 if what == "Shoot":
 
-                    commentary = commentaries.getCommentary('shoot', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
+                    commentary = commentaries.get_commentary('shoot', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
                     matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
                     eventlist.append(matchevent)
 
@@ -352,45 +352,45 @@ async def simulate(id, vs, event):
 
 
                         curevent = Event("goal", whoplay, whoTeam, i)
-                        commentary = commentaries.getCommentary('goal',
+                        commentary = commentaries.get_commentary('goal',
                                                                 {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
 
                     else:
                         who.ovr = who.ovr + 2
-                        commentary = commentaries.getCommentary('missedShot', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
+                        commentary = commentaries.get_commentary('missedShot', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
 
 
                 elif what == "Fault":
-                    commentary = commentaries.getCommentary('dangerousFoul', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
+                    commentary = commentaries.get_commentary('dangerousFoul', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
 
                     if success == 0:
                         who.ovr = who.ovr - 3
-                        commentary = commentaries.getCommentary('noCardAfterDangerousFoul', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
+                        commentary = commentaries.get_commentary('noCardAfterDangerousFoul', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
 
                     if success == 1:
                         if who.isYellowCard == False:
                             who.ovr = who.ovr - 10
                             who.isYellowCard = True
                             curevent = Event("yelcard", whoplay, whoTeam, i)
-                            commentary = commentaries.getCommentary('yellowCard',
+                            commentary = commentaries.get_commentary('yellowCard',
                                                                     {'PLAYER_TEAM': whoTeam, "PLAYER_NAME": whoplay})
                         else:
                             who.ovr = 0
                             who.isRedCard = True
                             curevent = Event("redcard", whoplay, whoTeam, i)
-                            commentary = commentaries.getCommentary('redCard',
+                            commentary = commentaries.get_commentary('redCard',
                                                                     {'PLAYER_TEAM': whoTeam, "PLAYER_NAME": whoplay})
 
                 elif what == "Bonus":
-                    commentary = commentaries.getCommentary('dominant',
+                    commentary = commentaries.get_commentary('dominant',
                                                             {'DOMINANT_TEAM': teamsname.home if team == "home" else teamsname.away,
                                                              'DOMINATED_TEAM': teamsname.away if team == "home" else teamsname.home})
 
                 else:
-                    commentary = commentaries.getCommentary('noAction')
+                    commentary = commentaries.get_commentary('noAction')
 
         else:
-            commentary = commentaries.getCommentary('noAction')
+            commentary = commentaries.get_commentary('noAction')
 
         matchevents.append(str(i) + "," + str(score_home) + "," + str(score_away))
 
@@ -437,7 +437,7 @@ async def simulate(id, vs, event):
             await update_points_leaderboard(team_name_home, 1)
 
     commentaryKey = 'homeWin' if score_home > score_away else "awayWin" if score_home < score_away else "draw"
-    commentary = commentaries.getCommentary(commentaryKey, {'HOME_TEAM': team_name_home, 'AWAY_TEAM': team_name_away})
+    commentary = commentaries.get_commentary(commentaryKey, {'HOME_TEAM': team_name_home, 'AWAY_TEAM': team_name_away})
 
     # Goal reset
     curevent = "\u200b"

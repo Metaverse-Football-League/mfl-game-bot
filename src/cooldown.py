@@ -1,11 +1,12 @@
 import datetime
 from config import config
 
-on_cooldown_scout = {}
-on_cooldown_match = {}
-
 cooldown_scout = config["cooldown_scout"]
 cooldown_match = config["cooldown_match"]
+
+cooldowns_scout_by_user = {}
+cooldowns_match_by_user = {}
+
 
 def end_cooldown(user, cd_date, cd_dict, cd_name):
     now = datetime.datetime.now()
@@ -23,26 +24,25 @@ def end_cooldown(user, cd_date, cd_dict, cd_name):
         return(cdtime)
 
 
-def check(user):
+def get_user_cooldowns(user):
+    cooldowns_for_user = {}
 
-    cd_list = {}
-
-    if (user in on_cooldown_scout.keys()):
-        cd_date = on_cooldown_scout[user]
-        cd_end = end_cooldown(user, cd_date, on_cooldown_scout, cd_name="scout")
+    if (user in cooldowns_scout_by_user.keys()):
+        cd_date = cooldowns_scout_by_user[user]
+        cd_end = end_cooldown(user, cd_date, cooldowns_scout_by_user, cd_name="scout")
         if cd_end != "no":
-            cd_list["scout"] = cd_end
+            cooldowns_for_user["scout"] = cd_end
 
-    if (user in on_cooldown_match.keys()):
-        cd_date = on_cooldown_match[user]
-        cd_end = end_cooldown(user, cd_date, on_cooldown_match, cd_name="match")
+    if (user in cooldowns_match_by_user.keys()):
+        cd_date = cooldowns_match_by_user[user]
+        cd_end = end_cooldown(user, cd_date, cooldowns_match_by_user, cd_name="match")
         if cd_end != "no":
-            cd_list["match"] = cd_end
+            cooldowns_for_user["match"] = cd_end
 
-    return(cd_list)
+    return(cooldowns_for_user)
 
 def add_cd_scout(user):
-    on_cooldown_scout[user] = datetime.datetime.now()
+    cooldowns_scout_by_user[user] = datetime.datetime.now()
 
 def add_cd_match(user):
-    on_cooldown_match[user] = datetime.datetime.now()
+    cooldowns_match_by_user[user] = datetime.datetime.now()

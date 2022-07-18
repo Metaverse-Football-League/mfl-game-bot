@@ -140,12 +140,12 @@ commentaries = {
         "*{PLAYER_TEAM}*: No card for *{PLAYER_NAME}*",
         "The referee signals *{PLAYER_NAME}* to come closer... Last warning.",
         "The referee asks *{PLAYER_NAME}* over for a chat. Final warning.",
-        "**{PLAYER_NAME}** escapes without a booking."
+        "*{PLAYER_NAME}* escapes without a booking."
     ],
     'noAction': [
         "---"
     ]
 }
 
-def getCommentary(actionType, replacements = {}):
+def get_commentary(actionType, replacements = {}):
   return choice(commentaries[actionType]).format(**replacements)

@@ -5,32 +5,24 @@ from discord.ext import commands
 from random import randint
 import events
 import leaderboards
-import matchengine
+import engine_core
 import nfts
 import players
 import teams
 import cooldown
 import nations
 from config import config
-import discordUtils
+import utils_discord
 
 ### Prerequisites
 # Discord2 Python library (py-cord)
 # asyncio library
 # names library to generate random names
 
-### Files
-## Players (DisplayName, OVR, Position, Owner, nationality, nft, rarity)
-f_players = config["dataPath"] + "players.csv"
 ## Teams
 # Name, user_id, boolean(0 : bot, 1 : player, form)
 f_teams = config["dataPath"] + "teams.csv"
-## Goal scorers (number, name, team)
-f_goals = config["dataPath"] + "goals.csv"
-## Event (name, desc, status)
-f_events = config["dataPath"] + "events.csv"
 
-#load_dotenv(dotenv_path="config")
 intents = discord.Intents.all()
 
 ### Set prefix
@@ -42,7 +34,7 @@ gamechan = config["gameChan"]
 
 async def callmatch(team1, team2, event):
 
-    match = await matchengine.play(str(team1), str(team2), event)
+    match = await engine_core.play(str(team1), str(team2), event)
     view = View()
     color = 0x00ff00
     embedmenu = discord.Embed(
@@ -279,7 +271,7 @@ async def game(ctx):
                             eventName = "no"
 
                         print(opponent)
-                        list_embed_match = await matchengine.play(user_id, opponent, eventName)
+                        list_embed_match = await engine_core.play(user_id, opponent, eventName)
 
                         async def button_finishmatch_callback(interaction):
                             global skip
@@ -323,7 +315,7 @@ async def game(ctx):
             if str(interaction.user) == user_name:
                 embed_team = await teams.getAll(user_id)
 
-                check_cooldown = cooldown.check(user_name)
+                check_cooldown = cooldown.get_user_cooldowns(user_name)
 
                 view = View()
                 view.add_item(button_manage_team)
@@ -335,12 +327,12 @@ async def game(ctx):
 
                 if "scout" in check_cooldown.keys():
                     end_cooldown = check_cooldown["scout"]
-                    description = description + "Scout until " + discordUtils.formatDateTimeForDiscord(end_cooldown) + " \n"
+                    description = description + "Scout until " + utils_discord.formatDateTimeForDiscord(end_cooldown) + " \n"
 
 
                 if "match" in check_cooldown.keys():
                     end_cooldown = check_cooldown["match"]
-                    description = description + "Match until " + discordUtils.formatDateTimeForDiscord(end_cooldown)
+                    description = description + "Match until " + utils_discord.formatDateTimeForDiscord(end_cooldown)
 
                 else:
                     view.add_item(button_play)
@@ -355,7 +347,7 @@ async def game(ctx):
             if str(interaction.user) == user_name:
                 embed_team = await teams.getAll(user_id)
 
-                check_cooldown = cooldown.check(user_name)
+                check_cooldown = cooldown.get_user_cooldowns(user_name)
 
                 view = View()
                 view.add_item(button_return)
@@ -364,13 +356,13 @@ async def game(ctx):
                 description = ""
                 if "scout" in check_cooldown.keys():
                     end_cooldown = check_cooldown["scout"]
-                    description = description + "Scout until " + discordUtils.formatDateTimeForDiscord(end_cooldown) + " \n"
+                    description = description + "Scout until " + utils_discord.formatDateTimeForDiscord(end_cooldown) + " \n"
                 else:
                     view.add_item(button_scout)
 
                 if "match" in check_cooldown.keys():
                     end_cooldown = check_cooldown["match"]
-                    description = description + "Match until " + discordUtils.formatDateTimeForDiscord(end_cooldown)
+                    description = description + "Match until " + utils_discord.formatDateTimeForDiscord(end_cooldown)
 
                 else:
                     view.add_item(button_play)
@@ -894,17 +886,17 @@ async def game(ctx):
         button_nfts.callback = button_nfts_callback
         button_nt.callback = button_nt_callback
 
-        check_cooldown = cooldown.check(user_name)
+        check_cooldown = cooldown.get_user_cooldowns(user_name)
 
         view = view_def
         if "scout" in check_cooldown.keys():
             end_cooldown = check_cooldown["scout"]
-            value = "Scout until " + discordUtils.formatDateTimeForDiscord(end_cooldown)
+            value = "Scout until " + utils_discord.formatDateTimeForDiscord(end_cooldown)
             embedmenu.add_field(name="Cooldown", value=value)
 
         if "match" in check_cooldown.keys():
             end_cooldown = check_cooldown["match"]
-            value = "Match until " + discordUtils.formatDateTimeForDiscord(end_cooldown)
+            value = "Match until " + utils_discord.formatDateTimeForDiscord(end_cooldown)
             embedmenu.add_field(name="Cooldown", value=value)
         else:
             view.add_item(button_play)
