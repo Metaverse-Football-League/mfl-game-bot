@@ -49,7 +49,7 @@ async def get(name_event, teamname):
                         name = line.split(",")[2]
                         embeduser = "**"+ str(number) + "** : " + name + " (*" + team + "*)\n"
                     if leaderboard == "byTeam":
-                        embeduser = "**"+ str(number) + "** : "+team+"\n"
+                        embeduser = team + " - **"+ str(number) + "pts**\n"
 
 
         if embedscore == "":
