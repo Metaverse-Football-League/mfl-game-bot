@@ -130,7 +130,7 @@ commentaries = {
     ],
     'dangerousFoul': [
         "What a dangerous tackle from *{PLAYER_TEAM}* by *{PLAYER_NAME}*",
-        "Tackle not mastered *{PLAYER_TEAM}* by *{PLAYER_NAME}*.. Fault !",
+        "Tackle not mastered *{PLAYER_TEAM}* by *{PLAYER_NAME}*.. Foul !",
         "FOUL! *{PLAYER_NAME}* brings the striker down. He had a clear run at goal!",
         "FOUL! Play is stopped after *{PLAYER_NAME}* pulls an opponent's shirt.",
         "FOUL! The referee blows his whistle after an awfully late challenge from *{PLAYER_NAME}*.",
