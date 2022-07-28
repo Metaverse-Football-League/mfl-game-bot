@@ -51,6 +51,7 @@ async def get(name_event, teamname):
                     if leaderboard == "byTeam":
                         embeduser = "**"+ str(number) + "** : "+team+"\n"
 
+
         if embedscore == "":
             embedscore = "\u200b"
 
