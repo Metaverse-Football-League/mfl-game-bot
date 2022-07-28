@@ -2,7 +2,9 @@ import discord
 import events
 from config import config
 
-async def get(i):
+async def get(name_event, teamname):
+    i = name_event
+
     f_goals = config["dataPath"] + "goals.csv"
     f_points = config["dataPath"] + "points.csv"
     leaderboard = "byPlayer"
@@ -25,9 +27,11 @@ async def get(i):
         goalfile.sort(reverse=True, key=lambda x: int(x.split(",")[0]))
         embedscore = ""
         indice = 1
+        embeduser = "\u200b"
 
         for line in goalfile:
             number = line.split(",")[0]
+            team = line.split(",")[1]
             if int(reward) > 0:
                 nbgoal += int(number)
             if indice <= 10:
@@ -39,9 +43,19 @@ async def get(i):
                 else:
                     embedscore = embedscore + "**"+ str(number) + "** : "+team+"\n"
                 indice += 1
+            if teamname == team:
+                if embeduser == "\u200b":
+                    if leaderboard == "byPlayer":
+                        name = line.split(",")[2]
+                        embeduser = "**"+ str(number) + "** : " + name + " (*" + team + "*)\n"
+                    if leaderboard == "byTeam":
+                        embeduser = "**"+ str(number) + "** : "+team+"\n"
 
         if embedscore == "":
             embedscore = "\u200b"
+
+        if embeduser != "\u200b":
+            embedscore = embedscore + "--------\n" + embeduser
 
         default_color = 0x00ff00
 

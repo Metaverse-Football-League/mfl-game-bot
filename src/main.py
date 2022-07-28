@@ -736,10 +736,12 @@ async def game(ctx):
         async def button_leaderboard_callback(interaction):
             if str(interaction.user) == user_name:
 
+                username = interaction.user.name if interaction.user.nick is None else interaction.user.nick
+                teamname = "FC "+username
                 viewlead = View()
                 viewlead.add_item(button_return)
 
-                embedlead = await leaderboards.get(user_id)
+                embedlead = await leaderboards.get("none", teamname)
                 eventlist = await events.get("all")
                 i = 1
 
@@ -790,7 +792,7 @@ async def game(ctx):
                 async def button_leads_callback(interaction):
                     event = interaction.data['custom_id'].split(",")[0]
 
-                    embedlead = await leaderboards.get(event)
+                    embedlead = await leaderboards.get(event, teamname)
 
                     await showmenu.edit_original_message(view=viewlead, embed=embedlead)
                     await interaction.response.defer()
