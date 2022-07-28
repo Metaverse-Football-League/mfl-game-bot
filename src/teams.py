@@ -24,8 +24,10 @@ async def getAll(id):
     user_id = str(id)
     t_info = await get(user_id)
 
-    if t_info is None or t_info == "Error":
-        return "You have no team !"
+    if t_info is None:
+        return discord.Embed(title="No team found!", description="", color=default_color)
+    elif t_info == "Error":
+        return discord.Embed(title="Error", description="An error occurred during the request to get the teams.", color=default_color)
     else:
         p_info = await players.get(user_id)
         team_name = t_info.split(",")[0]

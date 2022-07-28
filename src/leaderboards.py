@@ -41,7 +41,7 @@ async def get(name_event, teamname):
                     name = line.split(",")[2]
                     embedscore = embedscore + "**"+ str(number) + "** : " + name + " (*" + team + "*)\n"
                 else:
-                    embedscore = embedscore + "**"+ str(number) + "** : "+team+"\n"
+                    embedscore = embedscore + team + " - **"+ str(number) + "pts**\n"
                 indice += 1
             if teamname == team:
                 if embeduser == "\u200b":

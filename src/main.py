@@ -2,7 +2,6 @@ import asyncio
 import discord
 from discord.ui import View, Button
 from discord.ext import commands
-#from dotenv import load_dotenv
 from random import randint
 import events
 import leaderboards
@@ -154,17 +153,15 @@ async def game(ctx):
         default_color = 0x00ff00
         embedmenu = discord.Embed(
             title='MFL Discord Game', color=default_color)
-        description = "\nYour players are currently in the training field... \n" \
-                    "In your place, I'll go and see what's going on. *Missed passes* and *uncontrolled shots*... " \
-                    "It seems you have a lot to do with them. But it's not my business, you're the boss here! 😉. \n\n" \
-                    "But, if you prefer to play with me here, well, you're the **boss**.\n\n" \
-                    "Let me remind you what the buttons below are for. \n" \
-                    "**Manage my Team** : Access to your line-up \n" \
-                    "---> **My MFL Players** : You have a MFL player in your wallet ? Put him in your team ! \n" \
-                    "---> **Scout** : Find a non-NFT player and let you the possibility to recruit him. \n" \
-                    "**Play** : Send your players on the field against another team \n" \
-                    "**Events** : List current eventName... more eventName, more fun ? \n" \
-                    "**Leaderboard** : Is there a world where your forward is the best scorer of the game ?"
+        description = "\nYour players are currently in the training field...\n" \
+                    "If I were you, I'll have a look at what's going on: *Missed passes, uncontrolled shots*...\n\n" \
+                    "It seems you have a lot to do with them. But it's not my business, you're the boss here! 😉\n\n" \
+                    "Let me remind you what the buttons below are for:\n" \
+                    "**👥 Manage my Team** : Access to your line-up\n" \
+                    "╠═ **🎉 My MFL Players**: You have a MFL player in your wallet? Put him in your team!\n" \
+                    "╚═ **👨 Scout**: Find a non-NFT player and recruit him if he is good enough :fire:.\n" \
+                    "**⚽ Play**: Send your players on the field against another team.\n" \
+                    "**🏆 Leaderboard**: Is there a world where your forward is the best scorer of the game?"
         #"**National Team** : Bring your country into the top of the world !"
         embedmenu.add_field(name="Hello coach "+user_name.split("#")[0]+ " !", value=description, inline=True)
         embedmenu.set_thumbnail(url="")
@@ -181,11 +178,11 @@ async def game(ctx):
         button_finishmatch = Button(label="Skip", style=discord.ButtonStyle.green, custom_id="finishmatch")
         button_leaderboard = Button(label="Leaderboard", style=discord.ButtonStyle.green, row=1, custom_id="leaderboard",
                                     emoji="🏆")
-        button_events = Button(label="Events", style=discord.ButtonStyle.green, row=1, custom_id="eventName", emoji="⭐")
+        #button_events = Button(label="Events", style=discord.ButtonStyle.green, row=1, custom_id="eventName", emoji="⭐")
 
         view_def = View()
         view_def.add_item(button_manage_team)
-        view_def.add_item(button_events)
+        #view_def.add_item(button_events)
         view_def.add_item(button_leaderboard)
 
         view_match = View()
@@ -218,27 +215,27 @@ async def game(ctx):
                         kind = event.kind
                         opponent = event.opponent
 
-                        if i == 1:
-                            button_ev1 = Button(label=teamName, style=discord.ButtonStyle.blurple,
-                                                    row=1, custom_id=code+","+opponent)
-                            view_opponents.add_item(button_ev1)
-                        elif i == 2:
-                            button_ev2 = Button(label=teamName, style=discord.ButtonStyle.blurple,
-                                                    row=1, custom_id=code+","+opponent)
-                            view_opponents.add_item(button_ev2)
-                        elif i == 3:
-                            button_ev3 = Button(label=teamName, style=discord.ButtonStyle.blurple,
-                                                    row=1, custom_id=code+","+opponent)
-                            view_opponents.add_item(button_ev3)
-                        elif i == 4:
-                            button_ev4 = Button(label=teamName, style=discord.ButtonStyle.blurple,
-                                                    row=1, custom_id=code+","+opponent)
-                            view_opponents.add_item(button_ev4)
-                        elif i == 5:
-                            button_ev5 = Button(label=teamName, style=discord.ButtonStyle.blurple,
-                                                    row=1, custom_id=code+","+opponent)
-                            view_opponents.add_item(button_ev5)
-                        i += 1
+                        #if i == 1:
+                        #    button_ev1 = Button(label=teamName, style=discord.ButtonStyle.blurple,
+                        #                            row=1, custom_id=code+","+opponent)
+                        #    view_opponents.add_item(button_ev1)
+                        #elif i == 2:
+                        #    button_ev2 = Button(label=teamName, style=discord.ButtonStyle.blurple,
+                        #                            row=1, custom_id=code+","+opponent)
+                        #    view_opponents.add_item(button_ev2)
+                        #elif i == 3:
+                        #    button_ev3 = Button(label=teamName, style=discord.ButtonStyle.blurple,
+                        #                            row=1, custom_id=code+","+opponent)
+                        #    view_opponents.add_item(button_ev3)
+                        #elif i == 4:
+                        #    button_ev4 = Button(label=teamName, style=discord.ButtonStyle.blurple,
+                        #                            row=1, custom_id=code+","+opponent)
+                        #    view_opponents.add_item(button_ev4)
+                        #elif i == 5:
+                        #    button_ev5 = Button(label=teamName, style=discord.ButtonStyle.blurple,
+                        #                            row=1, custom_id=code+","+opponent)
+                        #    view_opponents.add_item(button_ev5)
+                        #i += 1
 
                 id_random = str(list_teams[2].split(",")[1])
                 button_random = Button(label="vs Random", style=discord.ButtonStyle.grey, custom_id=id_random,
@@ -330,7 +327,7 @@ async def game(ctx):
 
                 view = View()
                 view.add_item(button_manage_team)
-                view.add_item(button_events)
+                #view.add_item(button_events)
                 view.add_item(button_leaderboard)
                 #view.add_item(button_nt)
 
@@ -525,8 +522,8 @@ async def game(ctx):
                         await showmenu.edit_original_message(view=viewnfts, embed=embednfts)
                         await interaction.response.defer()
 
-                button_previous = Button(style=discord.ButtonStyle.blurple, custom_id="prev", emoji="◀")
-                button_next = Button(style=discord.ButtonStyle.blurple, custom_id="next", emoji="▶")
+                button_previous = Button(style=discord.ButtonStyle.green, custom_id="prev", emoji="◀")
+                button_next = Button(style=discord.ButtonStyle.green, custom_id="next", emoji="▶")
                 button_next.callback = button_move_callback
                 button_previous.callback = button_move_callback
 
@@ -745,11 +742,12 @@ async def game(ctx):
                 eventlist = await events.get("all")
                 i = 1
 
-                button_global = Button(label="Goals", style=discord.ButtonStyle.blurple,
+                button_global = Button(label="Scorers", style=discord.ButtonStyle.blurple,
                                         row=1, custom_id="goals")
-                button_points = Button(label="Points", style=discord.ButtonStyle.blurple,
-                                        row=1, custom_id="points")
                 viewlead.add_item(button_global)
+
+                button_points = Button(label="Teams", style=discord.ButtonStyle.blurple,
+                                                        row=1, custom_id="points")
                 viewlead.add_item(button_points)
 
                 if eventlist[0] != "":
@@ -767,27 +765,27 @@ async def game(ctx):
                         kind = event.kind
                         opponent = event.opponent
 
-                        if i == 1:
-                            button_ev1 = Button(label=name, style=discord.ButtonStyle.blurple,
-                                                    row=2, custom_id=code+","+opponent)
-                            viewlead.add_item(button_ev1)
-                        elif i == 2:
-                            button_ev2 = Button(label=name, style=discord.ButtonStyle.blurple,
-                                                    row=2, custom_id=code+","+opponent)
-                            viewlead.add_item(button_ev2)
-                        elif i == 3:
-                            button_ev3 = Button(label=name, style=discord.ButtonStyle.blurple,
-                                                    row=2, custom_id=code+","+opponent)
-                            viewlead.add_item(button_ev3)
-                        elif i == 4:
-                            button_ev4 = Button(label=name, style=discord.ButtonStyle.blurple,
-                                                    row=2, custom_id=code+","+opponent)
-                            viewlead.add_item(button_ev4)
-                        elif i == 5:
-                            button_ev5 = Button(label=name, style=discord.ButtonStyle.blurple,
-                                                    row=2, custom_id=code+","+opponent)
-                            viewlead.add_item(button_ev5)
-                        i += 1
+                        #if i == 1:
+                        #    button_ev1 = Button(label=name, style=discord.ButtonStyle.blurple,
+                        #                            row=2, custom_id=code+","+opponent)
+                        #    viewlead.add_item(button_ev1)
+                        #elif i == 2:
+                        #    button_ev2 = Button(label=name, style=discord.ButtonStyle.blurple,
+                        #                            row=2, custom_id=code+","+opponent)
+                        #    viewlead.add_item(button_ev2)
+                        #elif i == 3:
+                        #    button_ev3 = Button(label=name, style=discord.ButtonStyle.blurple,
+                        #                            row=2, custom_id=code+","+opponent)
+                        #    viewlead.add_item(button_ev3)
+                        #elif i == 4:
+                        #    button_ev4 = Button(label=name, style=discord.ButtonStyle.blurple,
+                        #                            row=2, custom_id=code+","+opponent)
+                        #    viewlead.add_item(button_ev4)
+                        #elif i == 5:
+                        #    button_ev5 = Button(label=name, style=discord.ButtonStyle.blurple,
+                        #                            row=2, custom_id=code+","+opponent)
+                        #    viewlead.add_item(button_ev5)
+                        #i += 1
 
                 async def button_leads_callback(interaction):
                     event = interaction.data['custom_id'].split(",")[0]
@@ -887,7 +885,7 @@ async def game(ctx):
                 await interaction.response.defer()
 
         button_play.callback = button_play_callback
-        button_events.callback = button_events_callback
+        #button_events.callback = button_events_callback
         button_leaderboard.callback = button_leaderboard_callback
         #button_team.callback = button_team_callback
         button_manage_team.callback = button_manage_team_callback
