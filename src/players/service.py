@@ -2,34 +2,33 @@ import discord
 import names
 from random import randint, choice
 from config import config
-import players_models
+import players.models
 
 f_players = config["dataPath"] + "players.csv"
 
-async def create(id, manager):
+async def create_starting_eleven(team_id, coach_name):
     with open(f_players, "a") as pfile:
         i = 1
 
         # ID > 100000 -> team created by a Discord user
-        if int(id) > 1000000:
-            manager = manager
+        if int(team_id) > 1000000:
             m_ovr = 50
         else:
-            manager = "BOT"
+            coach_name = "BOT"
             m_ovr = randint(70, 90)
 
         m_pos = "COACH"
-        m_owner = id
+        m_owner = team_id
         nationalities = ["gb", "us", "au", "fr", "ca", "es", "cu", "mx"]
         nat = choice(nationalities)
         nft = "0"
         rarity = "no"
         pfile.write(
-            manager + "," + str(m_ovr) + "," + m_pos + "," + str(m_owner) + "," + nat + "," + nft + "," + rarity + "\n")
+            coach_name + "," + str(m_ovr) + "," + m_pos + "," + str(m_owner) + "," + nat + "," + nft + "," + rarity + "\n")
 
         while i <= 11:
             # To create better bot teams than players teams
-            if int(id) < 1000000:
+            if int(team_id) < 1000000:
                 ovr = randint(65, 82)
             else:
                 # Value for players generate by Discord User creation team (Issue #2)
@@ -58,7 +57,7 @@ async def create(id, manager):
                 position = "rw"
             elif i == 11:
                 position = "st"
-            owner = id
+            owner = team_id
             pfile.write(displayName + "," + str(ovr) + "," + position + "," + str(
                 owner) + "," + nat + "," + nft + "," + rarity + ",\n")
             i += 1
@@ -79,7 +78,7 @@ async def get(id):
                 isYellowCard = False
                 isRedCard = False
                 form = 3
-                myplayer = players_models.Player(displayName, ovr, pos, teamid, nat, rarity, form, i, isYellowCard, isRedCard)
+                myplayer = players.models.Player(displayName, ovr, pos, teamid, nat, rarity, form, i, isYellowCard, isRedCard)
                 i += 1
                 playerlist.append(myplayer)
         return playerlist
@@ -99,7 +98,7 @@ async def get_nation(nation):
             isYellowCard = False
             isRedCard = False
             form = 3
-            myplayer = players_models.Player(displayName, ovr, pos, teamid, nat, rarity, form, i, isYellowCard, isRedCard)
+            myplayer = players.models.Player(displayName, ovr, pos, teamid, nat, rarity, form, i, isYellowCard, isRedCard)
             i += 1
             playerlist.append(myplayer)
         return playerlist
@@ -228,7 +227,7 @@ async def scout(id):
     default_color = 0xffff00
 
     embedplayer = discord.Embed(
-        title=name, description="You find a new player !", color=default_color)
+        title=name, description="You find a new player!", color=default_color)
     embeddescription = ":flag_" + nat + ":`" + str(
         i) + " - " + pos + " " + ovr + "` " + rarity_flag + " *" + name + "*\n"
     oldplayer = ":flag_" + old_nat + ":`" + str(i) + " - " + old_pos + " " + str(old_ovr) + "` ~~" + old_name + "~~\n"

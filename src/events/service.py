@@ -1,6 +1,6 @@
 from config import config
-import utils_file
-import events_models
+import utils.file
+import events.models
 
 f_events = config["dataPath"] + "events.csv"
 
@@ -17,10 +17,10 @@ def create_event_from_csv(row, columns):
     if int(status) > 1:
         return(None)
 
-    return(Event(code, name, desc, status, kind, opponent, leaderboard, reward))
+    return(events.models.Event(code, name, desc, status, kind, opponent, leaderboard, reward))
 
 async def get():
-    events = await utils_file.read_csv_file(create_event_from_csv, f_events)
+    events = await utils.file.read_csv_file(create_event_from_csv, f_events)
     return events
 
 async def get_by_code(code):
@@ -30,5 +30,5 @@ async def get_by_code(code):
             return(None)
         return(create_event_from_csv(row, columns))
 
-    events = await utils_file.read_csv_file(create_event_from_csv_for_code, f_events)
+    events = await utils.file.read_csv_file(create_event_from_csv_for_code, f_events)
     return events

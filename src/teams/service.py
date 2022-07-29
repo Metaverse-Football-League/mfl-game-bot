@@ -1,6 +1,6 @@
 from random import sample
 import discord
-import players
+import players.service
 from config import config
 
 ## Teams
@@ -23,9 +23,9 @@ async def getAll(id):
     t_info = await get_by_id(user_id)
 
     if t_info is None or t_info == "Error":
-        return "You have no team !"
+        return "You have no team!"
     else:
-        p_info = await players.get(user_id)
+        p_info = await players.service.get(user_id)
         team_name = t_info.split(",")[0]
 
         i = 0
@@ -44,7 +44,6 @@ async def getAll(id):
             ovr = p_info[i].ovr
             pos = p_info[i].pos.upper()
             nat = p_info[i].nat
-            #nft = p_info[i].split(",")[5]
             rarity = p_info[i].rarity
             rarity_flag = "⚫"
 
@@ -102,3 +101,8 @@ async def get_by_ida(id):
 
         return embedteam, teamlist
 
+
+async def create(team_name, team_id, real_user, nation, coach_name):
+    with open(f_teams, "r+") as tfile:
+        tfile.write(team_name + "," + team_id + "," + real_user + "," + nation + "," + coach_name + "\n")
+        await players.service.create_starting_eleven(team_id, coach_name)

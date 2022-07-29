@@ -1,9 +1,9 @@
 import discord
 import requests
 from config import config
-import players
-import utils_nations
-import players_models
+import players.service
+import utils.nations
+import players.models
 
 #### Show NFT players
 async def get(id, indice):
@@ -26,7 +26,7 @@ async def get(id, indice):
     while i < len(nfts):
         nationality = nfts[i]['metadata']['nationalities'][0]
         try:
-            nation = utils_nations.nations_codes[nationality]
+            nation = utils.nations.nations_codes[nationality]
         except:
             nation = nationality
         positions = nfts[i]['metadata']['positions'][0]
@@ -64,11 +64,11 @@ async def get(id, indice):
 
 async def scout(id, name, ovr, pos, nat, rarity):
     user_id = str(id)
-    p_info = await players.get(user_id)
+    p_info = await players.service.get(user_id)
     name = name
     ovr = int(ovr)
     pos = pos
-    number = players_models.players_positions_placements[pos]
+    number = players.models.players_positions_placements[pos]
     nat = nat
     nft = "1"
     rarity = rarity
@@ -131,7 +131,7 @@ async def scout(id, name, ovr, pos, nat, rarity):
     default_color = 0xffff00
 
     embedplayer = discord.Embed(
-        title=name, description="You find a new player !", color=default_color)
+        title=name, description="You find a new player!", color=default_color)
     embeddescription = ":flag_" + nat + ":`" + str(i) + " - " + pos + " " + str(ovr) + "` " + rarity_flag + " *" + name + "*\n"
     oldplayer = ":flag_" + old_nat + ":`" + str(i) + " - " + old_pos + " " + str(old_ovr) + "` ~~" + old_name + "~~\n"
 

@@ -1,9 +1,9 @@
 import random
 import discord
 from random import randint
-import events
-import teams
-import players
+import events.service
+import teams.service
+import players.service
 import engine.commentaries
 import national_teams
 from config import config
@@ -43,7 +43,7 @@ class MatchEvent:
 
 async def simulate(id, vs, event):
     # Find player's team information
-    eventinfo = await events.get_by_code(event)
+    eventinfo = await events.service.get_by_code(event)
     leads = "byPlayer"
 
     if len(eventinfo) > 0:
@@ -51,13 +51,13 @@ async def simulate(id, vs, event):
 
     if event == "international":
         t_info = await nations.get(id)
-        playershome = await players.get_nation(id)
+        playershome = await players.service.get_nation(id)
         if len(playershome) == 11:
             playershome.insert(0, "Manager")
 
     else:
-        t_info = await teams.get_by_id(id)
-        playershome = await players.get(id)
+        t_info = await teams.service.get_by_id(id)
+        playershome = await players.service.get(id)
 
     def player_form(teamform):
 
@@ -90,13 +90,13 @@ async def simulate(id, vs, event):
 
     if event == "international":
         t_vs_info = await nations.get(vs)
-        playersaway = await players.get_nation(vs)
+        playersaway = await players.service.get_nation(vs)
         if len(playersaway) == 11:
             playersaway.insert(0, "Manager")
 
     else:
-        t_vs_info = await teams.get_by_id(vs)
-        playersaway = await players.get(vs)
+        t_vs_info = await teams.service.get_by_id(vs)
+        playersaway = await players.service.get(vs)
 
     team_name_away = t_vs_info.split(",")[0]
     try:
@@ -457,9 +457,9 @@ async def play(id, vs, events):
     away_name = eventlist[0].teams.away
     commentary = eventlist[0].commentary
 
-    description_start = "Welcome to the match !\nToday, *" + home_name + "* will face *" + away_name + "*.\n\nThe teams enter the " \
+    description_start = "Welcome to the match!\nToday, *" + home_name + "* will face *" + away_name + "*.\n\nThe teams enter the " \
                                                                                                     "field... let's go! "
-    description_default = "Welcome to the match !\nToday, *" + home_name + "* will face *" + away_name + "*.\n"
+    description_default = "Welcome to the match!\nToday, *" + home_name + "* will face *" + away_name + "*.\n"
 
     note = int(eventlist[0].note)
     if note == 1:
@@ -511,7 +511,7 @@ async def play(id, vs, events):
         if int(minutes) == 1:
             description = description_start
         elif x == eventlist[len(eventlist) - 1]:
-            description = "The referee whistles the end of the game !"
+            description = "The referee whistles the end of the game!"
         else:
             description = description_default
 

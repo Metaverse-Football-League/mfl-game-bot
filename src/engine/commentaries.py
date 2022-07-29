@@ -18,7 +18,7 @@ commentaries = {
         "At home, *{HOME_TEAM}* wins the game against *{AWAY_TEAM}*",
         "**{HOME_TEAM}** makes a great match and overcomes *{AWAY_TEAM}*",
         "Dominant performance by *{HOME_TEAM}*, well deserved the win and the 3 points.",
-        "Mission accomplished for *{HOME_TEAM}* against *{AWAY_TEAM}* !",
+        "Mission accomplished for *{HOME_TEAM}* against *{AWAY_TEAM}*!",
         "Full time! It's all over and *{HOME_TEAM}* fans are on their feet to applaud a very good performance by the hosts.",
         "FULL TIME! That's all the action for today, as *{HOME_TEAM}* defeat *{AWAY_TEAM}* in an action-packed encounter.",
         "FULL TIME! *{HOME_TEAM}* players celebrate their well-deserved victory over the visitors!",
@@ -28,7 +28,7 @@ commentaries = {
         "Away, *{AWAY_TEAM}* wins the game against *{HOME_TEAM}*",
         "**{AWAY_TEAM}** makes a great match and defeats *{HOME_TEAM}*",
         "It's full time and *{AWAY_TEAM}* have recorded a richly-deserved victory",
-        "**{HOME_TEAM}** was surprised by *{AWAY_TEAM}* in this match !",
+        "**{HOME_TEAM}** was surprised by *{AWAY_TEAM}* in this match!",
         "The referee blows the final whistle. A disappointing performance by the hosts sees *{AWAY_TEAM}* take this one!",
         "Final whistle! *{AWAY_TEAM}* comes out on top while the home side comes away empty-handed.",
         "Full Time! *{AWAY_TEAM}* players celebrate their well-deserved victory over the hosts today!",
@@ -57,7 +57,7 @@ commentaries = {
     ],
     'redCard': [
         "🟥 *{PLAYER_TEAM}*: It's a red card for *{PLAYER_NAME}*",
-        "🟥 *{PLAYER_TEAM}*: *{PLAYER_NAME}* has prevented a clear goalscoring opportunity and has received his marching orders !",
+        "🟥 *{PLAYER_TEAM}*: *{PLAYER_NAME}* has prevented a clear goalscoring opportunity and has received his marching orders!",
         "🟥 RED CARD! *{PLAYER_NAME}* is sent off! *{PLAYER_TEAM}* will have to do without him."
     ],
     'shoot': [
@@ -80,10 +80,10 @@ commentaries = {
         "**{PLAYER_NAME}** curls a dipping shot low towards the far post…"
     ],
     'goal': [
-        "⚽ What a goal for *{PLAYER_TEAM}* by *{PLAYER_NAME}* !",
-        "⚽ GOOOOOOAAAAAL !! Beautiful shoot for *{PLAYER_TEAM}* by *{PLAYER_NAME}*",
-        "⚽ Lovely cushioned header for *{PLAYER_NAME}* ! Ohhhhh, you beauty! What a hit son, what a hit",
-        "⚽ It's in ! Clinical finishing by *{PLAYER_NAME}*",
+        "⚽ What a goal for *{PLAYER_TEAM}* by *{PLAYER_NAME}*!",
+        "⚽ GOOOOOOAAAAAL!! Beautiful shoot for *{PLAYER_TEAM}* by *{PLAYER_NAME}*",
+        "⚽ Lovely cushioned header for *{PLAYER_NAME}*! Ohhhhh, you beauty! What a hit son, what a hit",
+        "⚽ It's in! Clinical finishing by *{PLAYER_NAME}*",
         "⚽ *{PLAYER_NAME}* finds the net!",
         "⚽ An unbelievable strike by *{PLAYER_NAME}*, that one will be replayed over and over again!"
         "⚽ A brilliant goal! A brilliant goal! Remember the name *{PLAYER_NAME}*",
@@ -109,7 +109,7 @@ commentaries = {
         "Beautiful action for *{PLAYER_TEAM}* but *{PLAYER_NAME}* missed the shoot",
         "What was that ?! Poor shot by *{PLAYER_NAME}*",
         "Shot by *{PLAYER_NAME}* takes a wicked deflection and goes behind",
-        "So close by *{PLAYER_NAME}* ! It's hit the post",
+        "So close by *{PLAYER_NAME}*! It's hit the post",
         "**{PLAYER_NAME}** is through and just has the keeper to beat. He completely misses the target!",
         "The goalkeeper deflects *{PLAYER_NAME}*'s volley onto the post! Brilliant save!",
         "**{PLAYER_NAME}** fires a shot inside the box but the defender slides in to block it!",
@@ -130,7 +130,7 @@ commentaries = {
     ],
     'dangerousFoul': [
         "What a dangerous tackle from *{PLAYER_TEAM}* by *{PLAYER_NAME}*",
-        "Tackle not mastered *{PLAYER_TEAM}* by *{PLAYER_NAME}*.. Foul !",
+        "Tackle not mastered *{PLAYER_TEAM}* by *{PLAYER_NAME}*.. Foul!",
         "FOUL! *{PLAYER_NAME}* brings the striker down. He had a clear run at goal!",
         "FOUL! Play is stopped after *{PLAYER_NAME}* pulls an opponent's shirt.",
         "FOUL! The referee blows his whistle after an awfully late challenge from *{PLAYER_NAME}*.",

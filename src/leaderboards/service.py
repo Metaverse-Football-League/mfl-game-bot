@@ -1,7 +1,7 @@
 import discord
-import events
+import events.service
 from config import config
-import utils_file
+import utils.file
 
 f_goals = config["dataPath"] + "goals.csv"
 f_points = config["dataPath"] + "points.csv"
@@ -13,7 +13,7 @@ async def get(leaderboard_name):
     f_data_path = f_goals
 
     if "event_" in leaderboard_name:
-        event = await events.get_by_code(leaderboard_name)
+        event = await events.service.get_by_code(leaderboard_name)
         leaderboard_aggregate = event[0].leaderboard
         reward = event[0].reward
         f_data_path = config["dataPath"] + "goals_" + leaderboard_name + ".csv"
@@ -22,7 +22,7 @@ async def get(leaderboard_name):
         f_data_path = f_points
         leaderboard_aggregate = "byTeam"
 
-    leaderboard_lines = await utils_file.read_csv_file(None, f_data_path)
+    leaderboard_lines = await utils.file.read_csv_file(None, f_data_path)
     leaderboard_lines.sort(reverse=True, key=lambda line: int(line[0]))
 
     line_number = 1
@@ -56,6 +56,6 @@ async def get(leaderboard_name):
 
     embed_lead.add_field(name="Ranking", value=embed_score)
     if int(reward) > 0:
-        embed_lead.add_field(name="Road to "+str(reward)+" goals !", value=str(nb_goal)+"/"+str(reward), inline=False)
+        embed_lead.add_field(name="Road to "+str(reward)+" goals!", value=str(nb_goal)+"/"+str(reward), inline=False)
 
     return embed_lead

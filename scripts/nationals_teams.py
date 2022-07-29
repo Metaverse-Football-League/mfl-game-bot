@@ -1,7 +1,7 @@
 import requests
 from config import config
 import utils_nations
-import players_models
+import players.models
 
 players_file = config["dataPath"] + "selections/all_players.csv"
 
@@ -84,7 +84,7 @@ for x in utils_nations.nations_codes.keys():
 
                 displayName = line.split(',')[0]
                 try:
-                    number = players_models.players_positions_indices[pos]
+                    number = players.models.players_positions_indices[pos]
                 except:
                     continue
                 rarity = line.split(',')[6]

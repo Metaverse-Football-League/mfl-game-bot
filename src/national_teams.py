@@ -1,7 +1,7 @@
 import discord
 from config import config
-import utils_nations
-import players_models
+import utils.nations
+import players.models
 
 f_nations = config["dataPath"] + "nations.csv"
 teams_selections = config["dataPath"] + "selections/team_"
@@ -44,13 +44,13 @@ async def get(team):
 async def getAll(team):
 
     if len(team) == 2:
-        for nation, prefix in utils_nations.nations_codes.items():
+        for nation, prefix in utils.nations.nations_codes.items():
             if prefix == team:
                 team = nation
 
     team = team.upper()
     filepath = active_teams+team
-    prefix = utils_nations.nations_codes[team]
+    prefix = utils.nations.nations_codes[team]
 
     i = 0
     default_color = 0x00ff00
@@ -92,7 +92,7 @@ async def getAll(team):
 async def getList(team):
     team = team.upper()
     filepath = teams_selections+team
-    prefix = utils_nations.nations_codes[team]
+    prefix = utils.nations.nations_codes[team]
     playerslist = []
     formatlist = []
 
@@ -156,7 +156,7 @@ async def search(team, name, ovr, pos, nat, rarity):
     name = name
     ovr = int(ovr)
     pos = pos
-    number = players_models.players_positions_placements[pos]
+    number = players.models.players_positions_placements[pos]
     print(number)
     nat = nat
     nft = "1"
@@ -178,7 +178,7 @@ async def search(team, name, ovr, pos, nat, rarity):
         isYellowCard = False
         isRedCard = False
         form = 3
-        myplayer = players_models.Player(old_displayName, old_ovr, old_pos, old_teamid, old_nat, old_rarity, form, i, isYellowCard, isRedCard)
+        myplayer = players.models.Player(old_displayName, old_ovr, old_pos, old_teamid, old_nat, old_rarity, form, i, isYellowCard, isRedCard)
         i += 1
         p_info.append(myplayer)
 
@@ -241,7 +241,7 @@ async def search(team, name, ovr, pos, nat, rarity):
     default_color = 0xffff00
 
     embedplayer = discord.Embed(
-        title=name, description="You find a new player !", color=default_color)
+        title=name, description="You find a new player!", color=default_color)
     embeddescription = ":flag_" + nat + ":`" + str(i) + " - " + pos + " " + str(ovr) + "` " + rarity_flag + " *" + name + "*\n"
     oldplayer = ":flag_" + old_nat + ":`" + str(i) + " - " + old_pos + " " + str(old_ovr) + "` ~~" + old_name + "~~\n"
 
@@ -252,7 +252,7 @@ async def search(team, name, ovr, pos, nat, rarity):
 
 async def replace(num, name, ovr, pos, nat):
     nat = nat
-    for nation, prefix in utils_nations.nations_codes.items():
+    for nation, prefix in utils.nations.nations_codes.items():
         if prefix == nat:
             team = nation
 
