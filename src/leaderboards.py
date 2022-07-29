@@ -22,7 +22,7 @@ async def get(leaderboard_name):
         f_data_path = f_points
         leaderboard_aggregate = "byTeam"
 
-    leaderboard_lines = utils_file.read_csv_file(None, f_data_path)
+    leaderboard_lines = await utils_file.read_csv_file(None, f_data_path)
     leaderboard_lines.sort(reverse=True, key=lambda line: int(line[0]))
 
     line_number = 1
@@ -31,14 +31,14 @@ async def get(leaderboard_name):
     for line in leaderboard_lines:
         score = line[0]
         if int(reward) > 0:
-            nb_goal += int(number)
+            nb_goal += int(line_number)
         if line_number <= 10:
             team = line[1]
             if leaderboard_aggregate == "byPlayer":
                 name = line[2]
                 embed_score += "**" + str(score) + "**: " + name + " (*" + team + "*)\n"
             else:
-                embed_score += team + " - **"+ str(number) + "pts**\n"
+                embed_score += team + " - **" + str(line_number) + "pts**\n"
             line_number += 1
 
     if embed_score == "":

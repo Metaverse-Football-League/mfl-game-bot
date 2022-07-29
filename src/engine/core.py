@@ -4,8 +4,8 @@ from random import randint
 import events
 import teams
 import players
-import engine_commentaries
-import nations
+import engine.commentaries
+import national_teams
 from config import config
 
 f_goals = config["dataPath"] + "goals.csv"
@@ -51,12 +51,12 @@ async def simulate(id, vs, event):
 
     if event == "international":
         t_info = await nations.get(id)
-        playershome = await players.getnation(id)
+        playershome = await players.get_nation(id)
         if len(playershome) == 11:
             playershome.insert(0, "Manager")
 
     else:
-        t_info = await teams.get(id)
+        t_info = await teams.get_by_id(id)
         playershome = await players.get(id)
 
     def player_form(teamform):
@@ -90,12 +90,12 @@ async def simulate(id, vs, event):
 
     if event == "international":
         t_vs_info = await nations.get(vs)
-        playersaway = await players.getnation(vs)
+        playersaway = await players.get_nation(vs)
         if len(playersaway) == 11:
             playersaway.insert(0, "Manager")
 
     else:
-        t_vs_info = await teams.get(vs)
+        t_vs_info = await teams.get_by_id(vs)
         playersaway = await players.get(vs)
 
     team_name_away = t_vs_info.split(",")[0]
@@ -171,7 +171,7 @@ async def simulate(id, vs, event):
     curevent = "\u200b"
 
     startPlayer = playershome[randint(2,11)]
-    commentary = commentaries.get_commentary('matchStart', {'HOME_TEAM': teamsname.home, 'AWAY_TEAM': teamsname.away, 'START_PLAYER_NAME': startPlayer.displayName})
+    commentary = engine.commentaries.get_commentary('matchStart', {'HOME_TEAM': teamsname.home, 'AWAY_TEAM': teamsname.away, 'START_PLAYER_NAME': startPlayer.displayName})
 
     def get_actions(team):
         ## Define scoring probabilities
@@ -332,7 +332,7 @@ async def simulate(id, vs, event):
 
                 if what == "Shoot":
 
-                    commentary = commentaries.get_commentary('shoot', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
+                    commentary = engine.commentaries.get_commentary('shoot', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
                     matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
                     eventlist.append(matchevent)
 
@@ -352,45 +352,45 @@ async def simulate(id, vs, event):
 
 
                         curevent = Event("goal", whoplay, whoTeam, i)
-                        commentary = commentaries.get_commentary('goal',
+                        commentary = engine.commentaries.get_commentary('goal',
                                                                 {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
 
                     else:
                         who.ovr = who.ovr + 2
-                        commentary = commentaries.get_commentary('missedShot', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
+                        commentary = engine.commentaries.get_commentary('missedShot', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
 
 
                 elif what == "Fault":
-                    commentary = commentaries.get_commentary('dangerousFoul', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
+                    commentary = engine.commentaries.get_commentary('dangerousFoul', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
 
                     if success == 0:
                         who.ovr = who.ovr - 3
-                        commentary = commentaries.get_commentary('noCardAfterDangerousFoul', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
+                        commentary = engine.commentaries.get_commentary('noCardAfterDangerousFoul', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
 
                     if success == 1:
                         if who.isYellowCard == False:
                             who.ovr = who.ovr - 10
                             who.isYellowCard = True
                             curevent = Event("yelcard", whoplay, whoTeam, i)
-                            commentary = commentaries.get_commentary('yellowCard',
+                            commentary = engine.commentaries.get_commentary('yellowCard',
                                                                     {'PLAYER_TEAM': whoTeam, "PLAYER_NAME": whoplay})
                         else:
                             who.ovr = 0
                             who.isRedCard = True
                             curevent = Event("redcard", whoplay, whoTeam, i)
-                            commentary = commentaries.get_commentary('redCard',
+                            commentary = engine.commentaries.get_commentary('redCard',
                                                                     {'PLAYER_TEAM': whoTeam, "PLAYER_NAME": whoplay})
 
                 elif what == "Bonus":
-                    commentary = commentaries.get_commentary('dominant',
+                    commentary = engine.commentaries.get_commentary('dominant',
                                                             {'DOMINANT_TEAM': teamsname.home if team == "home" else teamsname.away,
                                                              'DOMINATED_TEAM': teamsname.away if team == "home" else teamsname.home})
 
                 else:
-                    commentary = commentaries.get_commentary('noAction')
+                    commentary = engine.commentaries.get_commentary('noAction')
 
         else:
-            commentary = commentaries.get_commentary('noAction')
+            commentary = engine.commentaries.get_commentary('noAction')
 
         matchevents.append(str(i) + "," + str(score_home) + "," + str(score_away))
 
@@ -437,7 +437,7 @@ async def simulate(id, vs, event):
             await update_points_leaderboard(team_name_home, 1)
 
     commentaryKey = 'homeWin' if score_home > score_away else "awayWin" if score_home < score_away else "draw"
-    commentary = commentaries.get_commentary(commentaryKey, {'HOME_TEAM': team_name_home, 'AWAY_TEAM': team_name_away})
+    commentary = engine.commentaries.get_commentary(commentaryKey, {'HOME_TEAM': team_name_home, 'AWAY_TEAM': team_name_away})
 
     # Goal reset
     curevent = "\u200b"

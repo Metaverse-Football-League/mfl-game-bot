@@ -1,63 +1,11 @@
 import discord
-from players import Player
 from config import config
+import utils_nations
+import players_models
 
 f_nations = config["dataPath"] + "nations.csv"
 teams_selections = config["dataPath"] + "selections/team_"
 active_teams = config["dataPath"] + "selections/active_team_"
-
-nations = {
-    'ALGERIA': 'dz',
-    'ARGENTINA': 'ar',
-    'AUSTRALIA': 'au',
-    'AUSTRIA': 'at',
-    'BELGIUM': 'be',
-    'BRAZIL': 'br',
-    'CANADA': 'ca',
-    'CAMEROON': 'cm',
-    'CHILE': 'cl',
-    'COLOMBIA': 'co',
-    'COSTA_RICA': 'cr',
-    'CROATIA': 'hr',
-    'CZECH_REPUBLIC': 'cz',
-    'DENMARK': 'dk',
-    'ECUADOR': 'ec',
-    'ENGLAND': 'gb',
-    'EGYPT': 'eg',
-    'FRANCE': 'fr',
-    'GERMANY': 'de',
-    'HUNGARY': 'hu',
-    'KOREA_REPUBLIC': 'kr',
-    'ITALY': 'it',
-    'IRAN': 'ir',
-    'JAPAN': 'jp',
-    'MEXICO': 'mx',
-    'MOROCCO': 'ma',
-    'NETHERLANDS': 'nl',
-    'NIGERIA': 'ng',
-    'NORWAY': 'no',
-    'PARAGUAY': 'py',
-    'PERU': 'pe',
-    'POLAND': 'pl',
-    'PORTUGAL': 'pt',
-    'UKRAINE': 'ua',
-    'REPUBLIC_OF_IRELAND': 'ie',
-    'ROMANIA': 'ro',
-    'RUSSIA': 'ru',
-    'SAUDI_ARABIA': 'sa',
-    'SCOTLAND': 'gb',
-    'SENEGAL': 'sn',
-    'SERBIA': 'rs',
-    'SLOVAKIA': 'sk',
-    'SPAIN': 'es',
-    'SWITZERLAND': 'ch',
-    'SWEDEN': 'se',
-    'TUNISIA': 'tn',
-    'TURKEY': 'tr',
-    'UNITED_STATES': 'us',
-    'URUGUAY': 'uy',
-    'WALES': 'gb'
-}
 
 class NationalTeam:
     def __init__(self, displayName, prefix, manager):
@@ -96,13 +44,13 @@ async def get(team):
 async def getAll(team):
 
     if len(team) == 2:
-        for nation, prefix in nations.items():
+        for nation, prefix in utils_nations.nations_codes.items():
             if prefix == team:
                 team = nation
 
     team = team.upper()
     filepath = active_teams+team
-    prefix = nations[team]
+    prefix = utils_nations.nations_codes[team]
 
     i = 0
     default_color = 0x00ff00
@@ -144,7 +92,7 @@ async def getAll(team):
 async def getList(team):
     team = team.upper()
     filepath = teams_selections+team
-    prefix = nations[team]
+    prefix = utils_nations.nations_codes[team]
     playerslist = []
     formatlist = []
 
@@ -204,32 +152,11 @@ async def alreadyinTeam(team, name):
 
 
 async def search(team, name, ovr, pos, nat, rarity):
-
-    positions = {
-        'GK': 1,
-        'LB': 2,
-        'LWB': 2,
-        'CB': 3,
-        'RB': 5,
-        'RWB': 5,
-        'CDM': 6,
-        'CM': 7,
-        'CAM': 7,
-        'AM': 7,
-        'LW': 9,
-        'LM': 9,
-        'RW': 10,
-        'RM': 10,
-        'CF': 11,
-        'ST': 11,
-        'FW': 11
-    }
-
     team = team
     name = name
     ovr = int(ovr)
     pos = pos
-    number = positions[pos]
+    number = players_models.players_positions_placements[pos]
     print(number)
     nat = nat
     nft = "1"
@@ -251,7 +178,7 @@ async def search(team, name, ovr, pos, nat, rarity):
         isYellowCard = False
         isRedCard = False
         form = 3
-        myplayer = Player(old_displayName, old_ovr, old_pos, old_teamid, old_nat, old_rarity, form, i, isYellowCard, isRedCard)
+        myplayer = players_models.Player(old_displayName, old_ovr, old_pos, old_teamid, old_nat, old_rarity, form, i, isYellowCard, isRedCard)
         i += 1
         p_info.append(myplayer)
 
@@ -324,9 +251,8 @@ async def search(team, name, ovr, pos, nat, rarity):
     return embedplayer
 
 async def replace(num, name, ovr, pos, nat):
-    # nationalities = ["gb", "us", "au", "fr", "ca", "es", "cu", "mx"]
     nat = nat
-    for nation, prefix in nations.items():
+    for nation, prefix in utils_nations.nations_codes.items():
         if prefix == nat:
             team = nation
 

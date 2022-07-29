@@ -2,65 +2,11 @@ import discord
 import requests
 from config import config
 import players
-
+import utils_nations
+import players_models
 
 #### Show NFT players
 async def get(id, indice):
-
-    nations_prefix = {
-        'ALGERIA': 'dz',
-        'ARGENTINA': 'ar',
-        'AUSTRALIA': 'au',
-        'AUSTRIA': 'at',
-        'BELGIUM': 'be',
-        'BRAZIL': 'br',
-        'CANADA': 'ca',
-        'CAMEROON': 'cm',
-        'CHILE': 'cl',
-        'COLOMBIA': 'co',
-        'COSTA_RICA': 'cr',
-        'CROATIA': 'hr',
-        'CZECH_REPUBLIC': 'cz',
-        'DENMARK': 'dk',
-        'ECUADOR': 'ec',
-        'ENGLAND': 'gb',
-        'EGYPT': 'eg',
-        'FRANCE': 'fr',
-        'GERMANY': 'de',
-        'HUNGARY': 'hu',
-        'KOREA_REPUBLIC': 'kr',
-        'ITALY': 'it',
-        'IRAN': 'ir',
-        'JAPAN': 'jp',
-        'MEXICO': 'mx',
-        'MOROCCO': 'ma',
-        'NETHERLANDS': 'nl',
-        'NIGERIA': 'ng',
-        'NORWAY': 'no',
-        'PARAGUAY': 'py',
-        'PERU': 'pe',
-        'POLAND': 'pl',
-        'PORTUGAL': 'pt',
-        'UKRAINE': 'ua',
-        'REPUBLIC_OF_IRELAND': 'ie',
-        'ROMANIA': 'ro',
-        'RUSSIA': 'ru',
-        'SAUDI_ARABIA': 'sa',
-        'SCOTLAND': 'gb',
-        'SENEGAL': 'sn',
-        'SERBIA': 'rs',
-        'SLOVAKIA': 'sk',
-        'SPAIN': 'es',
-        'SWITZERLAND': 'ch',
-        'SWEDEN': 'se',
-        'TUNISIA': 'tn',
-        'TURKEY': 'tr',
-        'UNITED_STATES': 'us',
-        'URUGUAY': 'uy',
-        'WALES': 'gb'
-
-    }
-
     host = config["apiUrl"] + "/users/discord/"
     user_id = str(id)
     link = host+user_id+"/players"
@@ -80,7 +26,7 @@ async def get(id, indice):
     while i < len(nfts):
         nationality = nfts[i]['metadata']['nationalities'][0]
         try:
-            nation = nations_prefix[nationality]
+            nation = utils_nations.nations_codes[nationality]
         except:
             nation = nationality
         positions = nfts[i]['metadata']['positions'][0]
@@ -119,31 +65,10 @@ async def get(id, indice):
 async def scout(id, name, ovr, pos, nat, rarity):
     user_id = str(id)
     p_info = await players.get(user_id)
-
-    positions = {
-        'GK': 1,
-        'LB': 2,
-        'LWB': 2,
-        'CB': 3,
-        'RB': 5,
-        'RWB': 5,
-        'CDM': 6,
-        'CM': 7,
-        'CAM': 7,
-        'AM': 7,
-        'LW': 9,
-        'LM': 9,
-        'RW': 10,
-        'RM': 10,
-        'CF': 11,
-        'ST': 11,
-        'FW': 11
-    }
-
     name = name
     ovr = int(ovr)
     pos = pos
-    number = positions[pos]
+    number = players_models.players_positions_placements[pos]
     nat = nat
     nft = "1"
     rarity = rarity

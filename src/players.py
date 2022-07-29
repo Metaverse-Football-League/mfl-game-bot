@@ -2,23 +2,9 @@ import discord
 import names
 from random import randint, choice
 from config import config
+import players_models
 
 f_players = config["dataPath"] + "players.csv"
-
-class Player:
-    def __init__(self, displayName, ovr, pos, teamid, nat, rarity, form, number, isYellowCard, isRedCard):
-        self.displayName = displayName
-        self.form = int(form)
-        self.number = number
-        self.nat = nat
-        self.pos = pos
-        self.ovr = int(ovr)
-        self.rarity = rarity
-        self.teamid = teamid
-        self.isYellowCard = isYellowCard
-        self.isRedCard = isRedCard
-
-
 
 async def create(id, manager):
     with open(f_players, "a") as pfile:
@@ -93,12 +79,12 @@ async def get(id):
                 isYellowCard = False
                 isRedCard = False
                 form = 3
-                myplayer = Player(displayName, ovr, pos, teamid, nat, rarity, form, i, isYellowCard, isRedCard)
+                myplayer = players_models.Player(displayName, ovr, pos, teamid, nat, rarity, form, i, isYellowCard, isRedCard)
                 i += 1
                 playerlist.append(myplayer)
         return playerlist
 
-async def getnation(nation):
+async def get_nation(nation):
     with open(config["dataPath"] + "selections/active_team_"+nation.upper(), "r+") as pfile:
         playerfile = pfile.readlines()
         playerlist = []
@@ -113,7 +99,7 @@ async def getnation(nation):
             isYellowCard = False
             isRedCard = False
             form = 3
-            myplayer = Player(displayName, ovr, pos, teamid, nat, rarity, form, i, isYellowCard, isRedCard)
+            myplayer = players_models.Player(displayName, ovr, pos, teamid, nat, rarity, form, i, isYellowCard, isRedCard)
             i += 1
             playerlist.append(myplayer)
         return playerlist
@@ -254,7 +240,6 @@ async def scout(id):
 
 
 async def recruit(id, num, name, ovr, pos, nat):
-    # nationalities = ["gb", "us", "au", "fr", "ca", "es", "cu", "mx"]
     nat = nat
     nft = "0"
     ovr = int(ovr)

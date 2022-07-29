@@ -7,22 +7,20 @@ from config import config
 # Name, user_id, boolean(0 : bot, 1 : player, form)
 f_teams = config["dataPath"] + "teams.csv"
 
-async def get(id):
-    print("called")
-    # Find team which owned by called player
+# Find team by id (team id == user id)
+async def get_by_id(team_id):
     with open(f_teams, "r") as tfile:
-        teamfile = tfile.readlines()
-
-        for line in teamfile:
+        team_file = tfile.readlines()
+        for line in team_file:
             try:
-                if id == str(line.split(",")[1]):
+                if team_id == str(line.split(",")[1]):
                     return line
             except:
                 continue
 
 async def getAll(id):
     user_id = str(id)
-    t_info = await get(user_id)
+    t_info = await get_by_id(user_id)
 
     if t_info is None or t_info == "Error":
         return "You have no team !"
@@ -72,7 +70,7 @@ async def getAll(id):
 
         return embedteam
 
-async def find(id):
+async def get_by_ida(id):
     with open(f_teams, "r") as tfile:
         teamfile = tfile.readlines()
         teamlist = []

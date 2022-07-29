@@ -1,78 +1,9 @@
 import requests
 from config import config
+import utils_nations
+import players_models
 
 players_file = config["dataPath"] + "selections/all_players.csv"
-
-nations = {
-    'ALGERIA': 'dz',
-    'ARGENTINA': 'ar',
-    'AUSTRALIA': 'au',
-    'AUSTRIA': 'at',
-    'BELGIUM': 'be',
-    'BRAZIL': 'br',
-    'CANADA': 'ca',
-    'CAMEROON': 'cm',
-    'CHILE': 'cl',
-    'COLOMBIA': 'co',
-    'COSTA_RICA': 'cr',
-    'CROATIA': 'hr',
-    'CZECH_REPUBLIC': 'cz',
-    'DENMARK': 'dk',
-    'ECUADOR': 'ec',
-    'ENGLAND': 'gb',
-    'EGYPT': 'eg',
-    'FRANCE': 'fr',
-    'GERMANY': 'de',
-    'HUNGARY': 'hu',
-    'KOREA_REPUBLIC': 'kr',
-    'ITALY': 'it',
-    'IRAN': 'ir',
-    'JAPAN': 'jp',
-    'MEXICO': 'mx',
-    'MOROCCO': 'ma',
-    'NETHERLANDS': 'nl',
-    'NIGERIA': 'ng',
-    'NORWAY': 'no',
-    'PARAGUAY': 'py',
-    'PERU': 'pe',
-    'POLAND': 'pl',
-    'PORTUGAL': 'pt',
-    'UKRAINE': 'ua',
-    'REPUBLIC_OF_IRELAND': 'ie',
-    'ROMANIA': 'ro',
-    'RUSSIA': 'ru',
-    'SAUDI_ARABIA': 'sa',
-    'SCOTLAND': 'gb',
-    'SENEGAL': 'sn',
-    'SERBIA': 'rs',
-    'SLOVAKIA': 'sk',
-    'SPAIN': 'es',
-    'SWITZERLAND': 'ch',
-    'SWEDEN': 'se',
-    'TUNISIA': 'tn',
-    'TURKEY': 'tr',
-    'UNITED_STATES': 'us',
-    'URUGUAY': 'uy',
-    'WALES': 'gb'
-}
-
-positions = {
-    'GK': 1,
-    'LB': 2,
-    'LWB': 2,
-    'CB': 4,
-    'RB': 5,
-    'RWB': 5,
-    'CDM': 6,
-    'CM': 7,
-    'CAM': 8,
-    'LW': 12,
-    'LM': 9,
-    'RW': 13,
-    'RM': 10,
-    'CF': 11,
-    'ST': 14,
-}
 
 """
 for n in nations.keys():
@@ -87,7 +18,7 @@ for n in nations.keys():
 
     list = nfts[n]
     with open(players_file, "a") as tfile:
-        for p in positions.keys():
+        for p in players_positions_indices.keys():
             plist = nfts[n][p]
             for x in plist:
                 displayName = x['metadata']['firstName']+" "+x['metadata']['lastName']
@@ -120,7 +51,7 @@ for x in nations.keys():
 
                 displayName = line.split(',')[0]
                 try:
-                    number = positions[pos]
+                    number = players_positions_indices[pos]
                 except:
                     continue
                 rarity = line.split(',')[6]
@@ -140,7 +71,7 @@ for x in nations.keys():
 
 
 ### Create starter 11 for each team
-for x in nations.keys():
+for x in utils_nations.nations_codes.keys():
     players_number = ["No", "No", "No", "No", "No", "No", "No", "No", "No", "No", "No"]
     i = 0
     filepath = config["dataPath"] + "selections/active_team_"+x
@@ -153,7 +84,7 @@ for x in nations.keys():
 
                 displayName = line.split(',')[0]
                 try:
-                    number = positions[pos]
+                    number = players_models.players_positions_indices[pos]
                 except:
                     continue
                 rarity = line.split(',')[6]
@@ -166,20 +97,20 @@ for x in nations.keys():
                     if (number == 3) or (number == 6):
                         if players_number[number - 1] == "No":
                             i += 1
-                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + nations[
+                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + utils_nations.nations_codes[
                                 x] + "," + "Yes" + "," + rarity + ",0,\n"
                             players_number[number - 1] = description
                         elif players_number[number] == "No":
                             print("Find : " + displayName + " " + pos + " : " + str(number))
                             i += 1
-                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + nations[
+                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + utils_nations.nations_codes[
                                 x] + "," + "Yes" + "," + rarity + ",0,\n"
                             players_number[number] = description
 
                     else:
                         if players_number[number] == "No":
                             i += 1
-                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + nations[x] + "," + "Yes" + "," + rarity + ",0,\n"
+                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + utils_nations.nations_codes[x] + "," + "Yes" + "," + rarity + ",0,\n"
                             players_number[number] = description
 
         for x in players_number:
@@ -190,7 +121,7 @@ for x in nations.keys():
 
 """
 ### Create best XI for each country
-for x in nations.keys():
+for x in utils_nations.nations_codes.keys():
     players_number = ["No", "No", "No", "No", "No", "No", "No", "No", "No", "No", "No"]
     i = 0
     filepath = "selections/best_team_"+x
@@ -201,7 +132,7 @@ for x in nations.keys():
                 pos = line.split(',')[2]
                 ovr = line.split(',')[1]
                 displayName = line.split(',')[0]
-                number = positions[pos]
+                number = players_positions_indices[pos]
                 rarity = line.split(',')[6]
                 teamid = x
 
@@ -209,20 +140,20 @@ for x in nations.keys():
                     if (number == 3) or (number == 6):
                         if players_number[number - 1] == "No":
                             i += 1
-                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + nations[
+                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + utils_nations.nations_codes[
                                 x] + "," + "Yes" + "," + rarity + ",0,\n"
                             players_number[number - 1] = description
                         elif players_number[number] == "No":
                             print("Find : " + displayName + " " + pos + " : " + str(number))
                             i += 1
-                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + nations[
+                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + utils_nations.nations_codes[
                                 x] + "," + "Yes" + "," + rarity + ",0,\n"
                             players_number[number] = description
 
                     else:
                         if players_number[number - 1] == "No":
                             i += 1
-                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + nations[x] + "," + "Yes" + "," + rarity + ",0,\n"
+                            description = displayName + "," + str(ovr) + "," + pos + "," + str(teamid) + "," + utils_nations.nations_codes[x] + "," + "Yes" + "," + rarity + ",0,\n"
                             players_number[number-1] = description
 
         for x in players_number:

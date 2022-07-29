@@ -5,14 +5,16 @@ from discord.ext import commands
 from random import randint
 import events
 import leaderboards
-import engine_core
-import nfts
+import engine.core
+import players_nfts
 import players
 import teams
 import cooldown
-import nations
+import national_teams
 from config import config
 import utils_discord
+import main_commands
+from discord_bot import bot
 
 ### Prerequisites
 # Discord2 Python library (py-cord)
@@ -25,16 +27,13 @@ f_teams = config["dataPath"] + "teams.csv"
 
 intents = discord.Intents.all()
 
-### Set prefix
-bot = discord.Bot()
-
 ### Discord configurations ###
 adminid = config["adminId"]
 gamechan = config["gameChan"]
 
 async def callmatch(team1, team2, event):
 
-    match = await engine_core.play(str(team1), str(team2), event)
+    match = await engine.core.play(str(team1), str(team2), event)
     view = View()
     color = 0x00ff00
     embedmenu = discord.Embed(
@@ -52,39 +51,6 @@ async def callmatch(team1, team2, event):
 async def on_ready():
     print("Bot Ready")
 
-#### CREATE TEAM ####
-@bot.command(name='create', description='The first step to enter into the game...')
-async def create(ctx):
-    # Usage : !create Team_Name
-    if str(ctx.channel.id) in gamechan:
-        with open(f_teams, "r+") as tfile:
-            user = ctx.interaction.user
-            user_id = str(user.id)
-            if user.id > 1000000:
-                username = user.name if user.nick is None else user.nick
-                teamname = "FC "+ username
-            else:
-                username = "BOT"
-            team_id = user_id
-            if user_id in tfile.read():
-                if str(user_id) in adminid:
-                    team_id = str(randint(1, 999999))
-                    teamname = "Team"+str(randint(1,1000))
-                    tfile.write(teamname + "," + team_id + ",no,3,BOT,\n")
-                    await players.create(team_id, username)
-                    await ctx.respond("Team " + teamname + " created !", ephemeral=True)
-                else:
-                    await ctx.respond("Sorry, you already have a team !", ephemeral=True)
-            else:
-                tfile.write(teamname + "," + team_id + ",yes,3,"+username+"\n")
-                await players.create(team_id, username)
-                await ctx.respond("Team " + teamname + " created !", ephemeral=True)
-
-@bot.command(name='view')
-async def change(ctx, user: discord.User):
-    if str(ctx.channel.id) in gamechan:
-        embedteam = await teams.getAll(str(user.id))
-        await ctx.respond(embed=embedteam, ephemeral=False)
 
 
 @bot.command(name='match', description="Start a match !", hidden=True)
@@ -139,7 +105,9 @@ async def match(ctx, user2: discord.User):
 #### Menu display
 @bot.command(name='game', description='Access to the menu, build your team and compete...')
 async def game(ctx):
+    print("game")
     if str(ctx.channel.id) in gamechan:
+        print("game 2")
         user_id = str(ctx.interaction.user.id)
         user_name = str(ctx.interaction.user)
         default_color = 0x00ff00
@@ -185,19 +153,20 @@ async def game(ctx):
 
         async def button_play_callback(interaction):
             if str(interaction.user) == user_name:
-                embed_opponents, list_teams = await teams.find(user_id)
-                list_events = await events.get("vs")
+                embed_opponents, list_teams = await teams.get_by_ida(user_id)
+                list_events = await events.get_by_code("vs")
 
                 view_opponents = View()
 
                 i = 1
 
-                if list_events[0] is not None:
-                    button_ev1 = None
-                    button_ev2 = None
-                    button_ev3 = None
-                    button_ev4 = None
-                    button_ev5 = None
+                button_ev1 = None
+                button_ev2 = None
+                button_ev3 = None
+                button_ev4 = None
+                button_ev5 = None
+
+                if len(list_events) > 0 and list_events[0] is not None:
 
                     for event in list_events:
                         code = event.code
@@ -271,7 +240,7 @@ async def game(ctx):
                             eventName = "no"
 
                         print(opponent)
-                        list_embed_match = await engine_core.play(user_id, opponent, eventName)
+                        list_embed_match = await engine.core.play(user_id, opponent, eventName)
 
                         async def button_finishmatch_callback(interaction):
                             global skip
@@ -380,7 +349,7 @@ async def game(ctx):
 
                 await interaction.response.defer()
 
-                list_players = await nfts.get(user_id, indice)
+                list_players = await players_nfts.get(user_id, indice)
 
                 async def nftembed(playerslist, indice):
                     default_color = 0xffff00
@@ -442,7 +411,7 @@ async def game(ctx):
                     embednfts.add_field(name="Players", value=description)
 
                     viewnfts = View()
-                    if len(playerslist) > 4:
+                    if len(playerslist) > 0:
                         viewnfts.add_item(button_previous)
                         viewnfts.add_item(button_next)
                     viewnfts.add_item(button_return)
@@ -478,7 +447,7 @@ async def game(ctx):
                                 await interaction.response.defer()
 
                             else:
-                                embedscout = await nfts.scout(user_id, name, ovr, pos, nat, rarity)
+                                embedscout = await players_nfts.scout(user_id, name, ovr, pos, nat, rarity)
 
                                 await showmenu.edit_original_message(view=viewscout, embed=embedscout)
                                 await interaction.response.defer()
@@ -729,7 +698,7 @@ async def game(ctx):
                 viewlead.add_item(button_return)
 
                 embedlead = await leaderboards.get(user_id)
-                eventlist = await events.get("all")
+                eventlist = await events.get_by_code("all")
                 i = 1
 
                 button_global = Button(label="Scorers", style=discord.ButtonStyle.blurple,
@@ -740,13 +709,13 @@ async def game(ctx):
                                                         row=1, custom_id="points")
                 viewlead.add_item(button_points)
 
-                if eventlist[0] != "":
-                    button_ev1 = None
-                    button_ev2 = None
-                    button_ev3 = None
-                    button_ev4 = None
-                    button_ev5 = None
+                button_ev1 = None
+                button_ev2 = None
+                button_ev3 = None
+                button_ev4 = None
+                button_ev5 = None
 
+                if len(eventlist) > 0 and eventlist[0] != "":
                     for event in eventlist:
                         code = event.code
                         name = event.name
@@ -804,7 +773,7 @@ async def game(ctx):
 
         async def button_events_callback(interaction):
             if str(interaction.user) == user_name:
-                eventlist = await events.get("all")
+                eventlist = await events.get_by_code("all")
 
                 view = View()
                 view.add_item(button_return)
