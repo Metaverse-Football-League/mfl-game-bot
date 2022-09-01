@@ -450,7 +450,7 @@ async def game(ctx):
                     embednfts.add_field(name="Players", value=description)
 
                     viewnfts = View()
-                    if len(playerslist) > 4:
+                    if len(playerslist) > 0:
                         viewnfts.add_item(button_previous)
                         viewnfts.add_item(button_next)
                     viewnfts.add_item(button_return)
