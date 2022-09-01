@@ -268,7 +268,7 @@ async def recruit(id, num, name, ovr, pos, nat):
     elif ovr >= 45:
         rarity = "common"
 
-    if ovr >= 45:
+    if ovr > 45:
         nft = "1"
 
     pfile = open(f_players, "r+")
