@@ -1,10 +1,7 @@
-import discord
 import requests
 from config import config
 import names
 from random import randint, choice
-import players
-import nfts
 
 f_players = config["dataPath"] + "players.csv"
 
@@ -14,7 +11,6 @@ pfile = open(f_players, "r+")
 playerfile = pfile.readlines()
 playerlist = []
 
-#Robert Hamrick,68,gk,501289,es,0,no,
 for line in playerfile:
     found = 0
     player_infos = line.split(",")
