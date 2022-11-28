@@ -440,7 +440,7 @@ async def simulate(id, vs, event, ot):
 
                     while finish is False:
 
-                        rd = nb % 11
+                        rd = nb % 12
                         if rd == 0:
                             rd = 1
                             nb = 1
@@ -468,11 +468,13 @@ async def simulate(id, vs, event, ot):
                         matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
                         eventlist.append(matchevent)
 
-                        if nb >= 5:
+                        nb += 1
+                        if nb <= 5:
+                            if abs(penhome - penaway) > 5 - nb:
+                                finish = True
+                        else:
                             if penhome != penaway:
                                 finish = True
-
-                        nb += 1
 
                     score = Score(score_home, score_away, penhome, penaway)
                     commentaryKey = 'homeWin' if penhome > penaway else "awayWin"
