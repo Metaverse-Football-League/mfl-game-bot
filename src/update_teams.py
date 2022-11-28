@@ -2,6 +2,7 @@ import requests
 from config import config
 import names
 from random import randint, choice
+import time
 
 f_players = config["dataPath"] + "players.csv"
 
@@ -31,6 +32,7 @@ for line in playerfile:
         }
         try:
             getnft = requests.get(link, headers=headers)
+            time.sleep(0.2)
             nfts = getnft.json()
         except:
             continue

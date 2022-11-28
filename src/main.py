@@ -40,9 +40,9 @@ bot = discord.Bot()
 adminid = config["adminId"]
 gamechan = config["gameChan"]
 
-async def callmatch(team1, team2, event):
+async def callmatch(team1, team2, event, ot):
 
-    match = await matchengine.play(str(team1), str(team2), event)
+    match = await matchengine.play(str(team1), str(team2), event, ot)
     view = View()
     color = 0x00ff00
     embedmenu = discord.Embed(
@@ -96,29 +96,29 @@ async def change(ctx, user: discord.User):
 
 
 @bot.command(name='match', description="Start a match !", hidden=True)
-async def match(ctx, user1: discord.User, user2: discord.User):
+async def match(ctx, user1: discord.User, user2: discord.User, overtime: bool):
     user_id = str(ctx.interaction.user.id)
     if (str(ctx.channel.id) in gamechan) and (user_id in adminid):
         team1 = str(user1.id)
         team2 = str(user2.id)
         event = "match"
-        view, embedmenu, match = await callmatch(team1, team2, event)
+        view, embedmenu, match = await callmatch(team1, team2, event, overtime)
         showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=False)
 
         for x in match:
             await showmenu.edit_original_message(view=view, embed=x)
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.01)
     else:
         await ctx.respond("You have no right to use this command !", ephemeral=True)
 
 
 @bot.command(name='intmatch', description="Start a match !", hidden=True)
-async def intmatch(ctx, team1:str, team2:str):
+async def intmatch(ctx, team1:str, team2:str, overtime: bool):
     user_id = str(ctx.interaction.user.id)
     if (str(ctx.channel.id) in gamechan) and (user_id in adminid):
         event = "international"
 
-        view, embedmenu, match = await callmatch(team1, team2, event)
+        view, embedmenu, match = await callmatch(team1, team2, event, overtime)
         showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=False)
 
         for x in match:
@@ -129,19 +129,19 @@ async def intmatch(ctx, team1:str, team2:str):
 
 
 @bot.command(name='versus', description="Start a match !")
-async def match(ctx, user2: discord.User):
+async def match(ctx, user2: discord.User, overtime: bool):
     if str(ctx.channel.id) in gamechan:
         user1 = ctx.interaction.user
         team1 = str(user1.id)
         team2 = str(user2.id)
         event = "versus"
 
-        view, embedmenu, match = await callmatch(team1, team2, event)
+        view, embedmenu, match = await callmatch(team1, team2, event, overtime)
         showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=False)
 
         for x in match:
             await showmenu.edit_original_message(view=view, embed=x)
-            await asyncio.sleep(1)
+            await asyncio.sleep(1.5)
 
 
 #### Menu display
@@ -279,7 +279,7 @@ async def game(ctx):
                             eventName = "no"
 
                         print(opponent)
-                        list_embed_match = await matchengine.play(user_id, opponent, eventName)
+                        list_embed_match = await matchengine.play(user_id, opponent, eventName, False)
 
                         async def button_finishmatch_callback(interaction):
                             global skip
@@ -764,28 +764,6 @@ async def game(ctx):
                         status = event.status
                         kind = event.kind
                         opponent = event.opponent
-
-                        #if i == 1:
-                        #    button_ev1 = Button(label=name, style=discord.ButtonStyle.blurple,
-                        #                            row=2, custom_id=code+","+opponent)
-                        #    viewlead.add_item(button_ev1)
-                        #elif i == 2:
-                        #    button_ev2 = Button(label=name, style=discord.ButtonStyle.blurple,
-                        #                            row=2, custom_id=code+","+opponent)
-                        #    viewlead.add_item(button_ev2)
-                        #elif i == 3:
-                        #    button_ev3 = Button(label=name, style=discord.ButtonStyle.blurple,
-                        #                            row=2, custom_id=code+","+opponent)
-                        #    viewlead.add_item(button_ev3)
-                        #elif i == 4:
-                        #    button_ev4 = Button(label=name, style=discord.ButtonStyle.blurple,
-                        #                            row=2, custom_id=code+","+opponent)
-                        #    viewlead.add_item(button_ev4)
-                        #elif i == 5:
-                        #    button_ev5 = Button(label=name, style=discord.ButtonStyle.blurple,
-                        #                            row=2, custom_id=code+","+opponent)
-                        #    viewlead.add_item(button_ev5)
-                        #i += 1
 
                 async def button_leads_callback(interaction):
                     event = interaction.data['custom_id'].split(",")[0]

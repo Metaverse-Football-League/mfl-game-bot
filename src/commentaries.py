@@ -34,11 +34,29 @@ commentaries = {
         "Full Time! *{AWAY_TEAM}* players celebrate their well-deserved victory over the hosts today!",
         "Full time! That's all the action for today, as *{AWAY_TEAM}* defeat *{HOME_TEAM}* in an action-packed encounter."
     ],
+    'homeWinbyPen': [
+        "Final whistle! That's it ! *{HOME_TEAM}* WON !"
+    ],
+    'awayWinbyPen': [
+        "Final whistle! That's it ! *{AWAY_TEAM}* WON !"
+    ],
     'draw': [
         "What a game!\n**{HOME_TEAM}** and *{AWAY_TEAM}* were at the same level today.",
         "Nothing to separate the 2 sides today.",
         "DRAW! No winners today as this hard-fought battle comes to a close.",
         "It's a draw! *{HOME_TEAM}* manage to defend home turf against a tough *{AWAY_TEAM}* side."
+    ],
+    'overtime': [
+        "Let's go for OVERTIIIIIIME !"
+    ],
+    'penalties': [
+        "After 120 minutes, decision is not made... Time for PENALTIES !"
+    ],
+    'penalties_score': [
+        "⚽ What a goal for *{PLAYER_TEAM}* by *{PLAYER_NAME}* !"
+    ],
+    'penalties_miss': [
+        "❌ No goal for *{PLAYER_TEAM}* by *{PLAYER_NAME}* !"
     ],
     'dominant': [
         "**{DOMINANT_TEAM}** is dominating the game!",

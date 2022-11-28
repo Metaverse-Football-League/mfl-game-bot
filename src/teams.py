@@ -23,6 +23,7 @@ async def get(id):
 async def getAll(id):
     user_id = str(id)
     t_info = await get(user_id)
+    default_color = 0xffff00
 
     if t_info is None:
         return discord.Embed(title="No team found!", description="", color=default_color)

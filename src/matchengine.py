@@ -18,9 +18,11 @@ class Teams:
 
 
 class Score:
-    def __init__(self, home, away):
+    def __init__(self, home, away, penhome, penaway):
         self.home = home
         self.away = away
+        self.penhome = penhome if penhome is not None else 0
+        self.penaway = penaway if penaway is not None else 0
 
 
 class Event:
@@ -41,7 +43,7 @@ class MatchEvent:
         self.note = note
 
 
-async def simulate(id, vs, event):
+async def simulate(id, vs, event, ot):
     # Find player's team information
     eventinfo = await events.getbyCode(event)
     leads = "byPlayer"
@@ -138,8 +140,13 @@ async def simulate(id, vs, event):
     ### Matchs initialisation
     score_home = 0
     score_away = 0
-    score = Score(score_home, score_away)
-    minutes = randint(92, 96)
+    penhome = 0
+    penaway = 0
+    score = Score(score_home, score_away, penhome, penaway)
+    #minutes = randint(92, 96)
+    minutes = randint(2,4)
+    #otminutes = randint(120,122)
+    otminutes = randint(92,94)
 
     home_bonus = round(home_ovr - away_ovr)
     away_bonus = round(away_ovr - home_ovr)
@@ -276,126 +283,220 @@ async def simulate(id, vs, event):
             pfile.seek(0)
             pfile.truncate(0)
             pfile.writelines(playerlist)
-        #else:
-        #    newgoals = 1
-        #    pfile.write(str(newgoals) + "," + player + "," + team + ",\n")
 
         pfile.close()
+
+    def playpenalties(player, goal):
+
+        success = False
+        shoot = randint(5,95)
+        score = 20
+        p_side = randint(1,4)
+        g_side = randint(1,4)
+        if p_side == g_side:
+            score = 80
+
+        ratio_p = round(player.ovr/3)
+        ratio_g = round(goal.ovr/3)
+
+        score = score + ratio_g - ratio_p
+
+        if shoot > score:
+            success = True
+
+        return success
 
     #### Start of the simulation ###############
 
     matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
+    finish = False
+    ### Penalties start
+    nb = 1
+    penhome = 0
+    penaway = 0
+
     eventlist.append(matchevent)
 
-    while i < minutes:
+    while finish is False:
 
-        ## Recheck team value (can change during game)
-        home_ovr_list = []
-        curevent = "\u200b"
+        while i < minutes:
 
-        for x in playershome:
-            if x == "Manager":
-                continue
-            if x.pos != "COACH":
-                home_ovr_list.append(x.ovr)
+            ## Recheck team value (can change during game)
+            home_ovr_list = []
+            curevent = "\u200b"
 
-        home_ovr = round(sum(home_ovr_list) / len(home_ovr_list))
+            for x in playershome:
+                if x == "Manager":
+                    continue
+                if x.pos != "COACH":
+                    home_ovr_list.append(x.ovr)
 
-        away_ovr_list = []
-        for x in playersaway:
-            if x == "Manager":
-                continue
-            if x.pos != "COACH":
-                away_ovr_list.append(x.ovr)
+            home_ovr = round(sum(home_ovr_list) / len(home_ovr_list))
 
-        away_ovr = round(sum(away_ovr_list) / len(away_ovr_list))
+            away_ovr_list = []
+            for x in playersaway:
+                if x == "Manager":
+                    continue
+                if x.pos != "COACH":
+                    away_ovr_list.append(x.ovr)
 
-        home_bonus = round(home_ovr - away_ovr)
+            away_ovr = round(sum(away_ovr_list) / len(away_ovr_list))
 
-        ## Give a balance between the 2 teams (if same OVR : 1-50 and 51-100 to find who makes the action)
-        ratio = round(50 + 2 * home_bonus)
+            home_bonus = round(home_ovr - away_ovr)
 
-        i += 1
-        x = randint(1, minutes)
+            ## Give a balance between the 2 teams (if same OVR : 1-50 and 51-100 to find who makes the action)
+            ratio = round(50 + 2 * home_bonus)
 
-        ### Déclenchement actions
-        if x < nb_actions:
-            who_attack = randint(1, 100)
-            if who_attack > ratio:
-                who, whoTeam, what, team, success = get_actions("away")
+            i += 1
+            x = randint(1, minutes)
+
+            ### Déclenchement actions
+            if x < nb_actions:
+                who_attack = randint(1, 100)
+                if who_attack > ratio:
+                    who, whoTeam, what, team, success = get_actions("away")
+                else:
+                    who, whoTeam, what, team, success = get_actions("home")
+
+                if who.isRedCard != True:
+
+                    whoplay = who.displayName
+
+                    if what == "Shoot":
+
+                        commentary = commentaries.getCommentary('shoot', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
+                        matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
+                        eventlist.append(matchevent)
+
+                        if success == 1:
+
+                            if team == "home":
+                                #score_home += 1
+                                score = Score(score_home, score_away, penhome, penaway)
+                                if event != "versus":
+                                    await register_goals(whoplay, teamsname.home, leads)
+
+                            else:
+                                #score_away += 1
+                                score = Score(score_home, score_away, penhome, penaway)
+                                if event != "versus":
+                                    await register_goals(whoplay, teamsname.away, leads)
+
+
+                            curevent = Event("goal", whoplay, whoTeam, i)
+                            commentary = commentaries.getCommentary('goal',
+                                                                    {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
+
+                        else:
+                            who.ovr = who.ovr + 2
+                            commentary = commentaries.getCommentary('missedShot', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
+
+
+                    elif what == "Fault":
+                        commentary = commentaries.getCommentary('dangerousFoul', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
+
+                        if success == 0:
+                            who.ovr = who.ovr - 3
+                            commentary = commentaries.getCommentary('noCardAfterDangerousFoul', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
+
+                        if success == 1:
+                            if who.isYellowCard == False:
+                                who.ovr = who.ovr - 10
+                                who.isYellowCard = True
+                                curevent = Event("yelcard", whoplay, whoTeam, i)
+                                commentary = commentaries.getCommentary('yellowCard',
+                                                                        {'PLAYER_TEAM': whoTeam, "PLAYER_NAME": whoplay})
+                            else:
+                                who.ovr = 0
+                                who.isRedCard = True
+                                curevent = Event("redcard", whoplay, whoTeam, i)
+                                commentary = commentaries.getCommentary('redCard',
+                                                                        {'PLAYER_TEAM': whoTeam, "PLAYER_NAME": whoplay})
+
+                    elif what == "Bonus":
+                        commentary = commentaries.getCommentary('dominant',
+                                                                {'DOMINANT_TEAM': teamsname.home if team == "home" else teamsname.away,
+                                                                 'DOMINATED_TEAM': teamsname.away if team == "home" else teamsname.home})
+
+                    else:
+                        commentary = commentaries.getCommentary('noAction')
+
             else:
-                who, whoTeam, what, team, success = get_actions("home")
+                commentary = commentaries.getCommentary('noAction')
 
-            if who.isRedCard != True:
+            matchevents.append(str(i) + "," + str(score_home) + "," + str(score_away))
 
-                whoplay = who.displayName
+            matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
+            eventlist.append(matchevent)
 
-                if what == "Shoot":
+        if i == minutes:
+            if minutes == otminutes:
+                commentary = commentaries.getCommentary('penalties')
+                curevent = "\u200b"
+                matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
+                eventlist.append(matchevent)
 
-                    commentary = commentaries.getCommentary('shoot', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
+                while finish is False:
+
+                    rd = nb % 11
+                    if rd == 0:
+                        rd = 1
+                        nb = 1
+
+                    curplayer_h = playershome[-rd]
+                    curplayer_a = playersaway[-rd]
+                    hshoot = playpenalties(curplayer_h, playersaway[1])
+                    if hshoot is True:
+                        penhome += 1
+
+                    score = Score(score_home, score_away, penhome, penaway)
+                    commentaryKey = 'penalties_score' if hshoot is True else "penalties_miss"
+                    commentary = commentaries.getCommentary(commentaryKey,
+                                                                {'PLAYER_TEAM': team_name_home, 'PLAYER_NAME': curplayer_h.displayName})
                     matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
                     eventlist.append(matchevent)
 
-                    if success == 1:
+                    ashoot = playpenalties(curplayer_a, playershome[1])
+                    if ashoot is True:
+                        penaway += 1
+                    score = Score(score_home, score_away, penhome, penaway)
+                    commentaryKey = 'penalties_score' if ashoot is True else "penalties_miss"
+                    commentary = commentaries.getCommentary(commentaryKey,
+                                                                {'PLAYER_TEAM': team_name_away, 'PLAYER_NAME': curplayer_a.displayName})
+                    matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
+                    eventlist.append(matchevent)
 
-                        if team == "home":
-                            score_home += 1
-                            score = Score(score_home, score_away)
-                            if event != "versus":
-                                await register_goals(whoplay, teamsname.home, leads)
+                    if nb >= 5:
+                        if penhome != penaway:
+                            finish = True
 
-                        else:
-                            score_away += 1
-                            score = Score(score_home, score_away)
-                            if event != "versus":
-                                await register_goals(whoplay, teamsname.away, leads)
+                    nb += 1
 
+                score = Score(score_home, score_away, penhome, penaway)
+                commentaryKey = 'homeWin' if penhome > penaway else "awayWin"
+                commentary = commentaries.getCommentary(commentaryKey,
+                                                        {'HOME_TEAM': team_name_home, 'AWAY_TEAM': team_name_away})
+                matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
+                eventlist.append(matchevent)
 
-                        curevent = Event("goal", whoplay, whoTeam, i)
-                        commentary = commentaries.getCommentary('goal',
-                                                                {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
+            elif ot is False:
+                finish = True
+            elif score_home != score_away:
+                finish = True
+            else:
+                i = 90
+                minutes = otminutes
+                curevent = "\u200b"
+                commentary = commentaries.getCommentary('draw',
+                                                        {'HOME_TEAM': team_name_home, 'AWAY_TEAM': team_name_away})
+                matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
+                eventlist.append(matchevent)
 
-                    else:
-                        who.ovr = who.ovr + 2
-                        commentary = commentaries.getCommentary('missedShot', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
+                commentary = commentaries.getCommentary('overtime',
+                                                        {'HOME_TEAM': team_name_home, 'AWAY_TEAM': team_name_away})
+                matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
+                eventlist.append(matchevent)
 
-
-                elif what == "Fault":
-                    commentary = commentaries.getCommentary('dangerousFoul', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
-
-                    if success == 0:
-                        who.ovr = who.ovr - 3
-                        commentary = commentaries.getCommentary('noCardAfterDangerousFoul', {'PLAYER_NAME': whoplay, 'PLAYER_TEAM': whoTeam})
-
-                    if success == 1:
-                        if who.isYellowCard == False:
-                            who.ovr = who.ovr - 10
-                            who.isYellowCard = True
-                            curevent = Event("yelcard", whoplay, whoTeam, i)
-                            commentary = commentaries.getCommentary('yellowCard',
-                                                                    {'PLAYER_TEAM': whoTeam, "PLAYER_NAME": whoplay})
-                        else:
-                            who.ovr = 0
-                            who.isRedCard = True
-                            curevent = Event("redcard", whoplay, whoTeam, i)
-                            commentary = commentaries.getCommentary('redCard',
-                                                                    {'PLAYER_TEAM': whoTeam, "PLAYER_NAME": whoplay})
-
-                elif what == "Bonus":
-                    commentary = commentaries.getCommentary('dominant',
-                                                            {'DOMINANT_TEAM': teamsname.home if team == "home" else teamsname.away,
-                                                             'DOMINATED_TEAM': teamsname.away if team == "home" else teamsname.home})
-
-                else:
-                    commentary = commentaries.getCommentary('noAction')
-
-        else:
-            commentary = commentaries.getCommentary('noAction')
-
-        matchevents.append(str(i) + "," + str(score_home) + "," + str(score_away))
-
-        matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
-        eventlist.append(matchevent)
 
     ### Note review
     if (int(score_away + score_home) <= 1) and (note > 1):
@@ -436,8 +537,13 @@ async def simulate(id, vs, event):
         elif score_home == score_away:
             await update_points_leaderboard(team_name_home, 1)
 
-    commentaryKey = 'homeWin' if score_home > score_away else "awayWin" if score_home < score_away else "draw"
-    commentary = commentaries.getCommentary(commentaryKey, {'HOME_TEAM': team_name_home, 'AWAY_TEAM': team_name_away})
+    if (penhome or penaway) > 0:
+        commentaryKey = "homeWinbyPen" if penhome > penaway else "awayWinbyPen"
+        commentary = commentaries.getCommentary(commentaryKey, {'HOME_TEAM': team_name_home, 'AWAY_TEAM': team_name_away})
+    else:
+        commentaryKey = "homeWin" if score_home > score_away else "awayWin" if score_home < score_away else "draw"
+        commentary = commentaries.getCommentary(commentaryKey, {'HOME_TEAM': team_name_home, 'AWAY_TEAM': team_name_away})
+
 
     # Goal reset
     curevent = "\u200b"
@@ -449,9 +555,9 @@ async def simulate(id, vs, event):
 
 
 #### SIMULATE MATCHES ####
-async def play(id, vs, events):
+async def play(id, vs, events, ot):
     user_id = str(id)
-    eventlist = await simulate(user_id, vs, events)
+    eventlist = await simulate(user_id, vs, events, ot)
 
     home_name = eventlist[0].teams.home
     away_name = eventlist[0].teams.away
@@ -517,9 +623,16 @@ async def play(id, vs, events):
 
         home_score = str(x.score.home)
         away_score = str(x.score.away)
+        home_score_pen = x.score.penhome
+        away_score_pen = x.score.penaway
+
         embedscore = discord.Embed(
             title='Match Day', color=default_color, description=description)
-        embedscore.add_field(name=home_name+" - "+away_name, value=home_score+" - "+away_score, inline=True)
+        if home_score_pen > 0:
+            embedscore.add_field(name=home_name+" - "+away_name, value=home_score+" ("+str(home_score_pen)+") - "+away_score+" ("+str(away_score_pen)+")", inline=True)
+        else:
+            embedscore.add_field(name=home_name+" - "+away_name, value=home_score+" - "+away_score, inline=True)
+
         embedscore.add_field(name="MIN", value=str(minutes) + "'", inline=True)
         #embedscore.add_field(name=away_name, value=str(away_score), inline=True)
         embedscore.add_field(name="Commentary", value=commentary, inline=False)
