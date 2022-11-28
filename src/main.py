@@ -530,7 +530,6 @@ async def game(ctx):
                 embednfts, viewnfts = await nftembed(list_players, indice)
 
                 await showmenu.edit_original_message(view=viewnfts, embed=embednfts)
-                #await interaction.response.defer()
 
         async def button_nt_callback(interaction):
             if str(interaction.user) == user_name:
