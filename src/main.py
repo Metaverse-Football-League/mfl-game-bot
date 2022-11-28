@@ -107,7 +107,7 @@ async def match(ctx, user1: discord.User, user2: discord.User, overtime: bool):
 
         for x in match:
             await showmenu.edit_original_message(view=view, embed=x)
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(1)
     else:
         await ctx.respond("You have no right to use this command !", ephemeral=True)
 

@@ -429,53 +429,57 @@ async def simulate(id, vs, event, ot):
 
         if i == minutes:
             if minutes == otminutes:
-                commentary = commentaries.getCommentary('penalties')
-                curevent = "\u200b"
-                matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
-                eventlist.append(matchevent)
 
-                while finish is False:
-
-                    rd = nb % 11
-                    if rd == 0:
-                        rd = 1
-                        nb = 1
-
-                    curplayer_h = playershome[-rd]
-                    curplayer_a = playersaway[-rd]
-                    hshoot = playpenalties(curplayer_h, playersaway[1])
-                    if hshoot is True:
-                        penhome += 1
-
-                    score = Score(score_home, score_away, penhome, penaway)
-                    commentaryKey = 'penalties_score' if hshoot is True else "penalties_miss"
-                    commentary = commentaries.getCommentary(commentaryKey,
-                                                                {'PLAYER_TEAM': team_name_home, 'PLAYER_NAME': curplayer_h.displayName})
+                if score_home != score_away:
+                    finish = True
+                else:
+                    commentary = commentaries.getCommentary('penalties')
+                    curevent = "\u200b"
                     matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
                     eventlist.append(matchevent)
 
-                    ashoot = playpenalties(curplayer_a, playershome[1])
-                    if ashoot is True:
-                        penaway += 1
+                    while finish is False:
+
+                        rd = nb % 11
+                        if rd == 0:
+                            rd = 1
+                            nb = 1
+
+                        curplayer_h = playershome[-rd]
+                        curplayer_a = playersaway[-rd]
+                        hshoot = playpenalties(curplayer_h, playersaway[1])
+                        if hshoot is True:
+                            penhome += 1
+
+                        score = Score(score_home, score_away, penhome, penaway)
+                        commentaryKey = 'penalties_score' if hshoot is True else "penalties_miss"
+                        commentary = commentaries.getCommentary(commentaryKey,
+                                                                    {'PLAYER_TEAM': team_name_home, 'PLAYER_NAME': curplayer_h.displayName})
+                        matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
+                        eventlist.append(matchevent)
+
+                        ashoot = playpenalties(curplayer_a, playershome[1])
+                        if ashoot is True:
+                            penaway += 1
+                        score = Score(score_home, score_away, penhome, penaway)
+                        commentaryKey = 'penalties_score' if ashoot is True else "penalties_miss"
+                        commentary = commentaries.getCommentary(commentaryKey,
+                                                                    {'PLAYER_TEAM': team_name_away, 'PLAYER_NAME': curplayer_a.displayName})
+                        matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
+                        eventlist.append(matchevent)
+
+                        if nb >= 5:
+                            if penhome != penaway:
+                                finish = True
+
+                        nb += 1
+
                     score = Score(score_home, score_away, penhome, penaway)
-                    commentaryKey = 'penalties_score' if ashoot is True else "penalties_miss"
+                    commentaryKey = 'homeWin' if penhome > penaway else "awayWin"
                     commentary = commentaries.getCommentary(commentaryKey,
-                                                                {'PLAYER_TEAM': team_name_away, 'PLAYER_NAME': curplayer_a.displayName})
+                                                            {'HOME_TEAM': team_name_home, 'AWAY_TEAM': team_name_away})
                     matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
                     eventlist.append(matchevent)
-
-                    if nb >= 5:
-                        if penhome != penaway:
-                            finish = True
-
-                    nb += 1
-
-                score = Score(score_home, score_away, penhome, penaway)
-                commentaryKey = 'homeWin' if penhome > penaway else "awayWin"
-                commentary = commentaries.getCommentary(commentaryKey,
-                                                        {'HOME_TEAM': team_name_home, 'AWAY_TEAM': team_name_away})
-                matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
-                eventlist.append(matchevent)
 
             elif ot is False:
                 finish = True
