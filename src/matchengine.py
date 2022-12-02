@@ -447,6 +447,13 @@ async def simulate(id, vs, event, ot):
 
                         curplayer_h = playershome[-rd]
                         curplayer_a = playersaway[-rd]
+
+                        score = Score(score_home, score_away, penhome, penaway)
+                        commentary = commentaries.getCommentary('willPenalty',
+                                                                    {'PLAYER_TEAM': team_name_home, 'PLAYER_NAME': curplayer_h.displayName})
+                        matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
+                        eventlist.append(matchevent)
+
                         hshoot = playpenalties(curplayer_h, playersaway[1])
                         if hshoot is True:
                             penhome += 1
@@ -455,6 +462,12 @@ async def simulate(id, vs, event, ot):
                         commentaryKey = 'penalties_score' if hshoot is True else "penalties_miss"
                         commentary = commentaries.getCommentary(commentaryKey,
                                                                     {'PLAYER_TEAM': team_name_home, 'PLAYER_NAME': curplayer_h.displayName})
+                        matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
+                        eventlist.append(matchevent)
+
+                        score = Score(score_home, score_away, penhome, penaway)
+                        commentary = commentaries.getCommentary('willPenalty',
+                                                                    {'PLAYER_TEAM': team_name_away, 'PLAYER_NAME': curplayer_a.displayName})
                         matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
                         eventlist.append(matchevent)
 

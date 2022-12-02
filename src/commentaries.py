@@ -52,6 +52,11 @@ commentaries = {
     'penalties': [
         "After 120 minutes, decision is not made... Time for PENALTIES !"
     ],
+    'willPenalty': [
+        "It's now *{PLAYER_NAME}* who will try to score...!",
+        "Can *{PLAYER_NAME}* able to success his penalty ...?",
+        "A lot of pressure now for *{PLAYER_NAME}* ...!"
+    ],
     'penalties_score': [
         "⚽ What a goal for *{PLAYER_TEAM}* by *{PLAYER_NAME}* !"
     ],
