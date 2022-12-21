@@ -62,6 +62,7 @@ async def get(id, indice):
     }
 
     host = config["apiUrl"] + "/users/discord/"
+    ovrmax = int(config["ovrmax"])
     user_id = str(id)
     link = host+user_id+"/players"
     headers = {
@@ -85,6 +86,9 @@ async def get(id, indice):
             nation = nationality
         positions = nfts[i]['metadata']['positions'][0]
         ovr = int(nfts[i]['metadata']['overall'])
+        if ovr > ovrmax:
+            i += 1
+            continue
         firstName = nfts[i]['metadata']['firstName']
         lastName = nfts[i]['metadata']['lastName']
         displayName = firstName + " " + lastName

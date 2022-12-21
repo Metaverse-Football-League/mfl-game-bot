@@ -1,7 +1,7 @@
 import asyncio
 import discord
 from discord.ui import View, Button
-from discord.ext import commands
+from discord.ext import commands, tasks
 from random import randint
 import events
 import leaderboards
@@ -13,6 +13,7 @@ import cooldown
 import nations
 from config import config
 import discordUtils
+from datetime import datetime, timedelta
 
 ### Prerequisites
 # Discord2 Python library (py-cord)
@@ -59,6 +60,35 @@ async def callmatch(team1, team2, event, ot):
 @bot.event
 async def on_ready():
     print("Bot Ready")
+
+"""
+target_channel_id = 983723647002882058
+
+def seconds_until_midnight():
+    now = datetime.now()
+    target = (now + timedelta(days=0)).replace(hour=13, minute=26, second=0, microsecond=0)
+    diff = (target - now).total_seconds()
+    if diff < 0:
+        target = (now + timedelta(days=1)).replace(hour=13, minute=26, second=0, microsecond=0)
+        diff = 86400 - abs(diff)
+    print(f"{target} - {now} = {diff}")
+    return diff
+@tasks.loop(seconds=1)
+async def called_once_a_day():
+    await asyncio.sleep(seconds_until_midnight())
+    message_channel = bot.get_channel(target_channel_id)
+    print(f"Got channel {message_channel}")
+    await message_channel.send("Your message")
+
+@called_once_a_day.before_loop
+async def before():
+    await bot.wait_until_ready()
+    print("Finished waiting")
+
+called_once_a_day.start()
+"""
+
+
 
 #### CREATE TEAM ####
 @bot.command(name='create', description='The first step to enter into the game...')
