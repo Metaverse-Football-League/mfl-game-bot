@@ -11,5 +11,7 @@ config = {
     "cooldown_scout": dotenvValues["CD_SCOUT"],
     "cooldown_match": dotenvValues["CD_MATCH"],
     "ovrmax": dotenvValues["OVRMAX"],
+    "match_hour": dotenvValues["MATCH_HOUR"],
+    "targetChannel": dotenvValues["TARGET_CHANNEL"],
     "dataPath": "../data/",
 }

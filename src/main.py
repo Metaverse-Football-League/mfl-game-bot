@@ -30,6 +30,8 @@ f_teams = config["dataPath"] + "teams.csv"
 f_goals = config["dataPath"] + "goals.csv"
 ## Event (name, desc, status)
 f_events = config["dataPath"] + "events.csv"
+## Matches (user1, user2, date)
+f_matchs = config["dataPath"] + "matchs.csv"
 
 #load_dotenv(dotenv_path="config")
 intents = discord.Intents.all()
@@ -61,24 +63,69 @@ async def callmatch(team1, team2, event, ot):
 async def on_ready():
     print("Bot Ready")
 
-"""
-target_channel_id = 983723647002882058
+hour,minutes = config["match_hour"].split(":")
+target_channel_id = int(config["targetChannel"])
 
 def seconds_until_midnight():
     now = datetime.now()
-    target = (now + timedelta(days=0)).replace(hour=13, minute=26, second=0, microsecond=0)
+    target = (now + timedelta(days=0)).replace(hour=int(hour), minute=int(minutes), second=0, microsecond=0)
     diff = (target - now).total_seconds()
     if diff < 0:
-        target = (now + timedelta(days=1)).replace(hour=13, minute=26, second=0, microsecond=0)
+        target = (now + timedelta(days=1)).replace(hour=int(hour), minute=int(minutes), second=0, microsecond=0)
         diff = 86400 - abs(diff)
     print(f"{target} - {now} = {diff}")
     return diff
 @tasks.loop(seconds=1)
 async def called_once_a_day():
     await asyncio.sleep(seconds_until_midnight())
+    now = datetime.now()
+    nyear = now.year
+    nmonth = now.month
+    nday = now.day
     message_channel = bot.get_channel(target_channel_id)
-    print(f"Got channel {message_channel}")
-    await message_channel.send("Your message")
+    matchs_file = open(f_matchs, "r+")
+
+    for line in matchs_file:
+        team1 = str(line.split(",")[0])
+        team2 = str(line.split(",")[1])
+        date = str(line.split(",")[2])
+        if "-" in date:
+            year = int(date.split("-")[0])
+            month = int(date.split("-")[1])
+            day = int(date.split("-")[2])
+        else:
+            year = int(date[0:3])
+            month = int(date[4:5])
+            day = int(date[6:7])
+        event = "match"
+        overtime = True
+
+        if (year == nyear) and (month == nmonth) and (day == nday):
+            view, embedmenu, match = await callmatch(team1, team2, event, overtime)
+
+            default_color = 0x00ffff
+            embedpre = discord.Embed(
+                title='MFL Discord Game', color=default_color)
+            description = "\nWelcome !\nThe following match will face <@"+team1+"> vs <@"+team2+">.\nIt will start in 2 minutes."
+            embedpre.add_field(name="Tournament", value=description, inline=True)
+            await message_channel.send("\u200b", embed=embedpre)
+            await asyncio.sleep(5)
+            showmenu = await message_channel.send("\u200b", view=view, embed=embedmenu)
+
+            for x in match:
+                await showmenu.edit(view=view, embed=x)
+                await asyncio.sleep(1)
+
+            embedpost = discord.Embed(
+                title='MFL Discord Game', color=default_color)
+            description = "\nThanks <@"+team1+"> vs <@"+team2+"> for this beautiful match."
+            embedpost.add_field(name="Tournament", value=description, inline=True)
+            teams = match[len(match) - 1].fields[0].name
+            result = match[len(match) - 1].fields[0].value
+            embedpost.add_field(name=teams, value=result, inline=False)
+
+            await message_channel.send("\u200b", embed=embedpost)
+            await asyncio.sleep(120)
 
 @called_once_a_day.before_loop
 async def before():
@@ -86,8 +133,6 @@ async def before():
     print("Finished waiting")
 
 called_once_a_day.start()
-"""
-
 
 
 #### CREATE TEAM ####
@@ -138,6 +183,7 @@ async def match(ctx, user1: discord.User, user2: discord.User, overtime: bool):
         for x in match:
             await showmenu.edit_original_message(view=view, embed=x)
             await asyncio.sleep(1)
+
     else:
         await ctx.respond("You have no right to use this command !", ephemeral=True)
 
