@@ -151,9 +151,7 @@ async def simulate(id, vs, event, ot):
     bonus = abs(home_bonus)
 
     note = randint(1, 100)
-    if note <= 10:
-        note = 1
-    elif 10 < note <= 30:
+    if note <= 30:
         note = 2
     elif 30 < note <= 70:
         note = 3
@@ -454,6 +452,13 @@ async def simulate(id, vs, event, ot):
                         matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
                         eventlist.append(matchevent)
 
+                        matchevent = MatchEvent(teamsname, score, curevent, "...", i, note)
+                        eventlist.append(matchevent)
+                        matchevent = MatchEvent(teamsname, score, curevent, "...", i, note)
+                        eventlist.append(matchevent)
+                        matchevent = MatchEvent(teamsname, score, curevent, "...", i, note)
+                        eventlist.append(matchevent)
+
                         hshoot = playpenalties(curplayer_h, playersaway[1])
                         if hshoot is True:
                             penhome += 1
@@ -471,6 +476,13 @@ async def simulate(id, vs, event, ot):
                         matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
                         eventlist.append(matchevent)
 
+                        matchevent = MatchEvent(teamsname, score, curevent, "...", i, note)
+                        eventlist.append(matchevent)
+                        matchevent = MatchEvent(teamsname, score, curevent, "...", i, note)
+                        eventlist.append(matchevent)
+                        matchevent = MatchEvent(teamsname, score, curevent, "...", i, note)
+                        eventlist.append(matchevent)
+
                         ashoot = playpenalties(curplayer_a, playershome[1])
                         if ashoot is True:
                             penaway += 1
@@ -482,8 +494,8 @@ async def simulate(id, vs, event, ot):
                         eventlist.append(matchevent)
 
                         nb += 1
-                        if nb <= 5:
-                            if abs(penhome - penaway) > 5 - nb:
+                        if nb <= 6:
+                            if abs(penhome - penaway) > 6 - nb:
                                 finish = True
                         else:
                             if penhome != penaway:
@@ -681,7 +693,7 @@ async def play(id, vs, events, ot):
         embedscore.add_field(name="\u200b", value="**Events**", inline=False)
         embedscore.add_field(name="\u200b", value=hcard, inline=True)
         embedscore.add_field(name="\u200b", value=acard, inline=True)
-        embedscore.add_field(name="Match Note", value=note, inline=False)
+        #embedscore.add_field(name="Match Note", value=note, inline=False)
 
         embedlist.append(embedscore)
 

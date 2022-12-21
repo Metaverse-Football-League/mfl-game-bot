@@ -11,4 +11,5 @@ config = {
     "cooldown_scout": dotenvValues["CD_SCOUT"],
     "cooldown_match": dotenvValues["CD_MATCH"],
     "dataPath": "../data/",
+    "sharedRegistrationFilePath": "../../data/registrations.csv",
 }

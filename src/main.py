@@ -30,8 +30,13 @@ f_goals = config["dataPath"] + "goals.csv"
 ## Event (name, desc, status)
 f_events = config["dataPath"] + "events.csv"
 
+f_sharedRegistration = config["sharedRegistrationFilePath"]
+
 #load_dotenv(dotenv_path="config")
+print("Init")
 intents = discord.Intents.all()
+
+print('Init after intents')
 
 ### Set prefix
 bot = discord.Bot()
@@ -61,32 +66,68 @@ async def on_ready():
     print("Bot Ready")
 
 #### CREATE TEAM ####
-@bot.command(name='create', description='The first step to enter into the game...')
-async def create(ctx):
+@bot.command(name='register', description='Register into this tournament...')
+async def register(ctx):
     # Usage : !create Team_Name
+    if str(ctx.channel.id) in gamechan:
+        with open(f_sharedRegistration, "r+") as sharedRegistrationFile:
+            user = ctx.interaction.user
+            user_id = str(user.id)
+            if user_id in sharedRegistrationFile.read():
+                await ctx.respond("Sorry, you are already registered to one of the Xmas tournament!\nUse /unregister to unregister. You'll then be able to use /register to register to another tournament.", ephemeral=True)
+            else:
+                sharedRegistrationFile.write(user_id+"\n")
+                with open(f_teams, "r+") as tfile:
+                    if user.id > 1000000:
+                        username = user.name if user.nick is None else user.nick
+                        teamname = "FC "+ username
+                    else:
+                        username = "BOT"
+                    team_id = user_id
+                    if user_id in tfile.read():
+                        if str(user_id) in adminid:
+                            team_id = str(randint(1, 999999))
+                            teamname = "Team"+str(randint(1,1000))
+                            tfile.write(teamname + "," + team_id + ",no,3,BOT,\n")
+                            await players.create(team_id, username)
+                            await ctx.respond("Team " + teamname + " created!", ephemeral=True)
+                        else:
+                            await ctx.respond("Sorry, you already have a team!", ephemeral=True)
+                    else:
+                        tfile.write(teamname + "," + team_id + ",yes,3,"+username+"," + user_id + "\n")
+                        await players.create(team_id, username)
+                        await ctx.respond("Team " + teamname + " created !", ephemeral=True)
+
+@bot.command(name='unregister', description='Unregister to all Xmas tournament...')
+async def unregister(ctx):
     if str(ctx.channel.id) in gamechan:
         with open(f_teams, "r+") as tfile:
             user = ctx.interaction.user
             user_id = str(user.id)
-            if user.id > 1000000:
-                username = user.name if user.nick is None else user.nick
-                teamname = "FC "+ username
-            else:
-                username = "BOT"
-            team_id = user_id
-            if user_id in tfile.read():
-                if str(user_id) in adminid:
-                    team_id = str(randint(1, 999999))
-                    teamname = "Team"+str(randint(1,1000))
-                    tfile.write(teamname + "," + team_id + ",no,3,BOT,\n")
-                    await players.create(team_id, username)
-                    await ctx.respond("Team " + teamname + " created !", ephemeral=True)
-                else:
-                    await ctx.respond("Sorry, you already have a team !", ephemeral=True)
-            else:
-                tfile.write(teamname + "," + team_id + ",yes,3,"+username+"\n")
-                await players.create(team_id, username)
-                await ctx.respond("Team " + teamname + " created !", ephemeral=True)
+            tlines = tfile.readlines()
+            tfile.seek(0)
+            for line in tlines:
+                if user_id not in line:
+                    tfile.write(line)
+            tfile.truncate()
+            with open(f_players, "r+") as pfile:
+                user = ctx.interaction.user
+                user_id = str(user.id)
+                tlines = pfile.readlines()
+                pfile.seek(0)
+                for line in tlines:
+                    if user_id not in line:
+                        pfile.write(line)
+                pfile.truncate()
+            with open(f_sharedRegistration, "r+") as sharedRegistrationFile:
+                if user_id in sharedRegistrationFile.read():
+                    lines = sharedRegistrationFile.readlines()
+                    sharedRegistrationFile.seek(0)
+                    for line in lines:
+                        if line != user_id:
+                            sharedRegistrationFile.write(line)
+                    sharedRegistrationFile.truncate()
+                await ctx.respond("You have been unregistered to all Xmas tournaments. You can use /register to rejoin a tournament.", ephemeral=True)
 
 @bot.command(name='view')
 async def change(ctx, user: discord.User):
@@ -112,36 +153,36 @@ async def match(ctx, user1: discord.User, user2: discord.User, overtime: bool):
         await ctx.respond("You have no right to use this command !", ephemeral=True)
 
 
-@bot.command(name='intmatch', description="Start a match !", hidden=True)
-async def intmatch(ctx, team1:str, team2:str, overtime: bool):
-    user_id = str(ctx.interaction.user.id)
-    if (str(ctx.channel.id) in gamechan) and (user_id in adminid):
-        event = "international"
+# @bot.command(name='intmatch', description="Start a match !", hidden=True)
+# async def intmatch(ctx, team1:str, team2:str, overtime: bool):
+#     user_id = str(ctx.interaction.user.id)
+#     if (str(ctx.channel.id) in gamechan) and (user_id in adminid):
+#         event = "international"
+#
+#         view, embedmenu, match = await callmatch(team1, team2, event, overtime)
+#         showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=False)
+#
+#         for x in match:
+#             await showmenu.edit_original_message(view=view, embed=x)
+#             await asyncio.sleep(1)
+#     else:
+#         await ctx.respond("You have no right to use this command !", ephemeral=True)
 
-        view, embedmenu, match = await callmatch(team1, team2, event, overtime)
-        showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=False)
 
-        for x in match:
-            await showmenu.edit_original_message(view=view, embed=x)
-            await asyncio.sleep(1)
-    else:
-        await ctx.respond("You have no right to use this command !", ephemeral=True)
-
-
-@bot.command(name='versus', description="Start a match !")
-async def match(ctx, user2: discord.User, overtime: bool):
-    if str(ctx.channel.id) in gamechan:
-        user1 = ctx.interaction.user
-        team1 = str(user1.id)
-        team2 = str(user2.id)
-        event = "versus"
-
-        view, embedmenu, match = await callmatch(team1, team2, event, overtime)
-        showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=False)
-
-        for x in match:
-            await showmenu.edit_original_message(view=view, embed=x)
-            await asyncio.sleep(1.5)
+# @bot.command(name='versus', description="Start a match !")
+# async def match(ctx, user2: discord.User, overtime: bool):
+#     if str(ctx.channel.id) in gamechan:
+#         user1 = ctx.interaction.user
+#         team1 = str(user1.id)
+#         team2 = str(user2.id)
+#         event = "versus"
+#
+#         view, embedmenu, match = await callmatch(team1, team2, event, overtime)
+#         showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=False)
+#
+#         for x in match:
+#             await showmenu.edit_original_message(view=view, embed=x)
+#             await asyncio.sleep(1.5)
 
 
 #### Menu display
@@ -160,13 +201,12 @@ async def game(ctx):
                     "**👥 Manage my Team** : Access to your line-up\n" \
                     "╠═ **🎉 My MFL Players**: You have a MFL player in your wallet? Put him in your team!\n" \
                     "╚═ **👨 Scout**: Find a non-NFT player and recruit him if he is good enough :fire:.\n" \
-                    "**⚽ Play**: Send your players on the field against another team.\n" \
                     "**🏆 Leaderboard**: Is there a world where your forward is the best scorer of the game?"
         #"**National Team** : Bring your country into the top of the world !"
         embedmenu.add_field(name="Hello coach "+user_name.split("#")[0]+ " !", value=description, inline=True)
         embedmenu.set_thumbnail(url="")
 
-        button_play = Button(label="Play", style=discord.ButtonStyle.blurple, custom_id="play", emoji="⚽")
+#         button_play = Button(label="Play", style=discord.ButtonStyle.blurple, custom_id="play", emoji="⚽")
         button_scout = Button(label="Scout", style=discord.ButtonStyle.green, custom_id="scout", emoji="👨")
         button_nfts = Button(label="My MFL Players", style=discord.ButtonStyle.green, custom_id="nfts", emoji="🎉")
         button_nt = Button(label="National Team", style=discord.ButtonStyle.green,
@@ -342,8 +382,8 @@ async def game(ctx):
                     end_cooldown = check_cooldown["match"]
                     description = description + "Match until " + discordUtils.formatDateTimeForDiscord(end_cooldown)
 
-                else:
-                    view.add_item(button_play)
+#                 else:
+#                     view.add_item(button_play)
 
                 if description != "":
                     embed_team.add_field(name="Cooldown", value=description)
@@ -372,8 +412,8 @@ async def game(ctx):
                     end_cooldown = check_cooldown["match"]
                     description = description + "Match until " + discordUtils.formatDateTimeForDiscord(end_cooldown)
 
-                else:
-                    view.add_item(button_play)
+#                 else:
+#                     view.add_item(button_play)
 
                 if description != "":
                     embed_team.add_field(name="Cooldown", value=description)
@@ -861,7 +901,7 @@ async def game(ctx):
                 await showmenu.edit_original_message(view=view, embed=embedteam)
                 await interaction.response.defer()
 
-        button_play.callback = button_play_callback
+#         button_play.callback = button_play_callback
         #button_events.callback = button_events_callback
         button_leaderboard.callback = button_leaderboard_callback
         #button_team.callback = button_team_callback
@@ -885,12 +925,13 @@ async def game(ctx):
             end_cooldown = check_cooldown["match"]
             value = "Match until " + discordUtils.formatDateTimeForDiscord(end_cooldown)
             embedmenu.add_field(name="Cooldown", value=value)
-        else:
-            view.add_item(button_play)
+#         else:
+#             view.add_item(button_play)
         embedmenu.set_image(url="https://d13e14gtps4iwl.cloudfront.net/discord/logo.jpg")
 
         showmenu = await ctx.respond("\u200b", view=view, embed=embedmenu, ephemeral=True)
 
+print('Run')
 bot.run(config["botToken"])
 
 
