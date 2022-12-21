@@ -74,7 +74,7 @@ async def register(ctx):
             user = ctx.interaction.user
             user_id = str(user.id)
             if user_id in sharedRegistrationFile.read():
-                await ctx.respond("Sorry, you are already registered to one of the Xmas tournament!\nUse /unregister to unregister. You'll then be able to use /register to register to another tournament.", ephemeral=True)
+                await ctx.respond("Sorry, you are already registered to one of the holiday cup tournament!\nUse /unregister to unregister. You'll then be able to use /register to register to another tournament.", ephemeral=True)
             else:
                 sharedRegistrationFile.write(user_id+"\n")
                 with open(f_teams, "r+") as tfile:
@@ -98,7 +98,7 @@ async def register(ctx):
                         await players.create(team_id, username)
                         await ctx.respond("Team " + teamname + " created !", ephemeral=True)
 
-@bot.command(name='unregister', description='Unregister to all Xmas tournament...')
+@bot.command(name='unregister', description='Unregister to all holiday cup tournaments...')
 async def unregister(ctx):
     if str(ctx.channel.id) in gamechan:
         with open(f_teams, "r+") as tfile:
@@ -127,7 +127,7 @@ async def unregister(ctx):
                         if line != user_id:
                             sharedRegistrationFile.write(line)
                     sharedRegistrationFile.truncate()
-                await ctx.respond("You have been unregistered to all Xmas tournaments. You can use /register to rejoin a tournament.", ephemeral=True)
+                await ctx.respond("You have been unregistered to all holiday cup tournaments. You can use /register to rejoin a tournament.", ephemeral=True)
 
 @bot.command(name='view')
 async def change(ctx, user: discord.User):
@@ -186,7 +186,7 @@ async def match(ctx, user1: discord.User, user2: discord.User, overtime: bool):
 
 
 #### Menu display
-@bot.command(name='game', description='Access to the menu, build your team and compete...')
+@bot.command(name='manage', description='Access to the menu, build your team and compete...')
 async def game(ctx):
     if str(ctx.channel.id) in gamechan:
         user_id = str(ctx.interaction.user.id)

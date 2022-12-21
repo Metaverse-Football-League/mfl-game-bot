@@ -10,6 +10,7 @@ config = {
     "gameChan": dotenvValues["GAME_CHAN"].split(","),
     "cooldown_scout": dotenvValues["CD_SCOUT"],
     "cooldown_match": dotenvValues["CD_MATCH"],
+    "ovrmax": dotenvValues["OVRMAX"],
     "dataPath": "../data/",
     "sharedRegistrationFilePath": "../../data/registrations.csv",
 }
