@@ -35,10 +35,10 @@ commentaries = {
         "Full time! That's all the action for today, as *{AWAY_TEAM}* defeat *{HOME_TEAM}* in an action-packed encounter."
     ],
     'homeWinbyPen': [
-        "Final whistle! That's it ! *{HOME_TEAM}* WON !"
+        "And that will do it! *{HOME_TEAM}* win this one after a nail-biting penalty shootout!"
     ],
     'awayWinbyPen': [
-        "Final whistle! That's it ! *{AWAY_TEAM}* WON !"
+        "And there it is! *{AWAY_TEAM}* have won it!"
     ],
     'draw': [
         "What a game!\n**{HOME_TEAM}** and *{AWAY_TEAM}* were at the same level today.",
@@ -47,25 +47,31 @@ commentaries = {
         "It's a draw! *{HOME_TEAM}* manage to defend home turf against a tough *{AWAY_TEAM}* side."
     ],
     'overtime': [
-        "Let's go for OVERTIIIIIIME !"
+        "FULL TIME! The referee signals the end of regulation and we are headed to EXTRA TIME!"
     ],
     'penalties': [
-        "After 120 minutes, decision is not made... Time for PENALTIES !"
+        "It is all square at the end of extra time... PENALTIES it is! This is the World Cup at its very best!"
     ],
     'willPenalty': [
-        "It's now *{PLAYER_NAME}* who will try to score...!",
-        "Can *{PLAYER_NAME}* able to success his penalty ...?",
-        "A lot of pressure now for *{PLAYER_NAME}* ...!"
+        "*{PLAYER_NAME}* steps up.",
+        "Can *{PLAYER_NAME}* slot it home?",
+        "The pressure is on now for *{PLAYER_NAME}*!"
     ],
     'penalties_score': [
-        "⚽ What a goal for *{PLAYER_TEAM}* by *{PLAYER_NAME}* !"
+        "⚽ It's in! *{PLAYER_NAME}* puts it in confidently right down the middle!"
+        "⚽ No problem for *{PLAYER_NAME}* who smashes it in the top corner!"
+        "⚽ *{PLAYER_NAME}* pulverizes it into the bottom far corner"
+        "⚽ *{PLAYER_NAME}* absolutely drives it into the corner!"
+        "⚽ Oohh! A cheeky Panenka from *{PLAYER_NAME}*! It fools the keeper!"
     ],
     'penalties_miss': [
-        "❌ No goal for *{PLAYER_TEAM}* by *{PLAYER_NAME}* !"
+        "❌ *{PLAYER_NAME}*'s effort is tipped wide by the goalkeeper!"
+        "❌ No good from *{PLAYER_NAME}*! He overhit it badly and it's gone over the bar!"
+        "❌ *{PLAYER_TEAM}* needed this one, but *{PLAYER_NAME}* sees his shot deflected onto the post and out!"
     ],
     'dominant': [
         "**{DOMINANT_TEAM}** is dominating the game!",
-        "**{DOMINATED_TEAM}** don't see the light today!",
+        "**{DOMINATED_TEAM}** doesn't see the light today!",
         "**{DOMINANT_TEAM}** have been absolutely dominant so far in this contest.",
         "**{DOMINANT_TEAM}** have taken control of this match. Can *{DOMINATED_TEAM}* hold on?",
         "This is becoming a one-sided affair with *{DOMINANT_TEAM}* now largely in control of the ball.",

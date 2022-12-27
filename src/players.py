@@ -139,14 +139,16 @@ async def generate(i):
     nationalities = ["gb", "us", "au", "fr", "ca", "es", "cu", "mx"]
     nat = choice(nationalities)
 
-    if rare <= 70:
+    if rare <= 10:
         ovr = randint(27, 32)
-    elif 89 >= rare > 69:
+    elif rare <= 50:
         ovr = randint(33, 37)
-    elif 97 >= rare > 89:
-        ovr = randint(38, 41)
-    elif rare > 97:
-        ovr = randint(42, 45)
+    elif rare <= 80:
+        ovr = randint(38, 44)
+    elif rare <= 97:
+        ovr = randint(44, 49)
+    else:
+        ovr = randint(49, 52)
 
     if i == 1:
         position = "gk"

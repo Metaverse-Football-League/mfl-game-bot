@@ -1,7 +1,7 @@
 import asyncio
 import discord
 from discord.ui import View, Button
-from discord.ext import commands
+from discord.ext import commands, tasks
 from random import randint
 import events
 import leaderboards
@@ -13,6 +13,7 @@ import cooldown
 import nations
 from config import config
 import discordUtils
+from datetime import datetime, timedelta
 
 ### Prerequisites
 # Discord2 Python library (py-cord)
@@ -29,6 +30,8 @@ f_teams = config["dataPath"] + "teams.csv"
 f_goals = config["dataPath"] + "goals.csv"
 ## Event (name, desc, status)
 f_events = config["dataPath"] + "events.csv"
+## Matches (user1, user2, date)
+f_matchs = config["dataPath"] + "matchs.csv"
 
 f_sharedRegistration = config["sharedRegistrationFilePath"]
 
@@ -46,7 +49,6 @@ adminid = config["adminId"]
 gamechan = config["gameChan"]
 
 async def callmatch(team1, team2, event, ot):
-
     match = await matchengine.play(str(team1), str(team2), event, ot)
     view = View()
     color = 0x00ff00
@@ -65,69 +67,145 @@ async def callmatch(team1, team2, event, ot):
 async def on_ready():
     print("Bot Ready")
 
-#### CREATE TEAM ####
-@bot.command(name='register', description='Register into this tournament...')
-async def register(ctx):
-    # Usage : !create Team_Name
-    if str(ctx.channel.id) in gamechan:
-        with open(f_sharedRegistration, "r+") as sharedRegistrationFile:
-            user = ctx.interaction.user
-            user_id = str(user.id)
-            if user_id in sharedRegistrationFile.read():
-                await ctx.respond("Sorry, you are already registered to one of the holiday cup tournament!\nUse /unregister to unregister. You'll then be able to use /register to register to another tournament.", ephemeral=True)
-            else:
-                sharedRegistrationFile.write(user_id+"\n")
-                with open(f_teams, "r+") as tfile:
-                    if user.id > 1000000:
-                        username = user.name if user.nick is None else user.nick
-                        teamname = "FC "+ username
-                    else:
-                        username = "BOT"
-                    team_id = user_id
-                    if user_id in tfile.read():
-                        if str(user_id) in adminid:
-                            team_id = str(randint(1, 999999))
-                            teamname = "Team"+str(randint(1,1000))
-                            tfile.write(teamname + "," + team_id + ",no,3,BOT,\n")
-                            await players.create(team_id, username)
-                            await ctx.respond("Team " + teamname + " created!", ephemeral=True)
-                        else:
-                            await ctx.respond("Sorry, you already have a team!", ephemeral=True)
-                    else:
-                        tfile.write(teamname + "," + team_id + ",yes,3,"+username+"," + user_id + "\n")
-                        await players.create(team_id, username)
-                        await ctx.respond("Team " + teamname + " created !", ephemeral=True)
+hour,minutes = config["match_hour"].split(":")
+target_channel_id = int(config["targetChannel"])
 
-@bot.command(name='unregister', description='Unregister to all holiday cup tournaments...')
-async def unregister(ctx):
-    if str(ctx.channel.id) in gamechan:
-        with open(f_teams, "r+") as tfile:
-            user = ctx.interaction.user
-            user_id = str(user.id)
-            tlines = tfile.readlines()
-            tfile.seek(0)
-            for line in tlines:
-                if user_id not in line:
-                    tfile.write(line)
-            tfile.truncate()
-            with open(f_players, "r+") as pfile:
-                user = ctx.interaction.user
-                user_id = str(user.id)
-                tlines = pfile.readlines()
-                pfile.seek(0)
-                for line in tlines:
-                    if user_id not in line:
-                        pfile.write(line)
-                pfile.truncate()
-            with open(f_sharedRegistration, "r+") as sharedRegistrationFile:
-                if user_id in sharedRegistrationFile.read():
-                    lines = sharedRegistrationFile.readlines()
-                    sharedRegistrationFile.seek(0)
-                    for line in lines:
-                        if line != user_id:
-                            sharedRegistrationFile.write(line)
-                    sharedRegistrationFile.truncate()
-                await ctx.respond("You have been unregistered to all holiday cup tournaments. You can use /register to rejoin a tournament.", ephemeral=True)
+def seconds_until_matches_start():
+    now = datetime.now()
+    target = (now + timedelta(days=0)).replace(hour=int(hour), minute=int(minutes), second=0, microsecond=0)
+    diff = (target - now).total_seconds()
+    if diff < 0:
+        target = (now + timedelta(days=1)).replace(hour=int(hour), minute=int(minutes), second=0, microsecond=0)
+        diff = 86400 - abs(diff)
+    print(f"{target} - {now} = {diff}")
+    return diff
+
+@tasks.loop(seconds=86400)
+async def called_once_a_day():
+    print("Start matches")
+#     await asyncio.sleep(seconds_until_matches_start())
+    now = datetime.now()
+    nyear = now.year
+    nmonth = now.month
+    nday = now.day
+    message_channel = bot.get_channel(target_channel_id)
+    matchs_file = open(f_matchs, "r+")
+    matchs_lines = matchs_file.readlines()
+    for line in matchs_lines:
+        print("a")
+        team1 = str(line.split(",")[0])
+        team2 = str(line.split(",")[1])
+        date = str(line.split(",")[2])
+        if "-" in date:
+            year = int(date.split("-")[0])
+            month = int(date.split("-")[1])
+            day = int(date.split("-")[2])
+        else:
+            year = int(date[0:3])
+            month = int(date[4:5])
+            day = int(date[6:7])
+        event = "match"
+        overtime = True
+
+        if (year == nyear) and (month == nmonth) and (day == nday):
+            print("Start match")
+            view, embedmenu, match = await callmatch(team1, team2, event, overtime)
+
+            default_color = 0x00ffff
+            embedpre = discord.Embed(
+                title='MFL Discord Game', color=default_color)
+            description = "\nWelcome !\nThe following match will face <@"+team1+"> vs <@"+team2+"> in the " + config["cupName"]  + ".\nIt will start in 10 seconds."
+            embedpre.add_field(name="Tournament", value=description, inline=True)
+            await message_channel.send("\u200b", embed=embedpre)
+            await asyncio.sleep(10)
+            showmenu = await message_channel.send("\u200b", view=view, embed=embedmenu)
+
+            for x in match:
+                await showmenu.edit(view=view, embed=x)
+                await asyncio.sleep(1)
+
+            embedpost = discord.Embed(
+                title='MFL Discord Game', color=default_color)
+            description = "\nThanks <@"+team1+"> vs <@"+team2+"> for this beautiful match."
+            embedpost.add_field(name="Tournament", value=description, inline=True)
+            teams = match[len(match) - 1].fields[0].name
+            result = match[len(match) - 1].fields[0].value
+            embedpost.add_field(name=teams, value=result, inline=False)
+
+            await message_channel.send("\u200b", embed=embedpost)
+            await asyncio.sleep(1)
+
+@called_once_a_day.before_loop
+async def before():
+    await bot.wait_until_ready()
+    print("Finished waiting")
+
+called_once_a_day.start()
+
+
+#### CREATE TEAM ####
+# @bot.command(name='register', description='Register into this tournament...')
+# async def register(ctx):
+#     # Usage : !create Team_Name
+#     if str(ctx.channel.id) in gamechan:
+#         with open(f_sharedRegistration, "r+") as sharedRegistrationFile:
+#             user = ctx.interaction.user
+#             user_id = str(user.id)
+#             if user_id in sharedRegistrationFile.read():
+#                 await ctx.respond("Sorry, you are already registered to one of the holiday cup tournament!\nUse /unregister to unregister. You'll then be able to use /register to register to another tournament.", ephemeral=True)
+#             else:
+#                 sharedRegistrationFile.write(user_id+"\n")
+#                 with open(f_teams, "r+") as tfile:
+#                     if user.id > 1000000:
+#                         username = user.name if user.nick is None else user.nick
+#                         teamname = "FC "+ username
+#                     else:
+#                         username = "BOT"
+#                     team_id = user_id
+#                     if user_id in tfile.read():
+#                         if str(user_id) in adminid:
+#                             team_id = str(randint(1, 999999))
+#                             teamname = "Team"+str(randint(1,1000))
+#                             tfile.write(teamname + "," + team_id + ",no,3,BOT,\n")
+#                             await players.create(team_id, username)
+#                             await ctx.respond("Team " + teamname + " created!", ephemeral=True)
+#                         else:
+#                             await ctx.respond("Sorry, you already have a team!", ephemeral=True)
+#                     else:
+#                         tfile.write(teamname + "," + team_id + ",yes,3,"+username+"," + user_id + "\n")
+#                         await players.create(team_id, username)
+#                         await ctx.respond("Team " + teamname + " created !", ephemeral=True)
+
+# @bot.command(name='unregister', description='Unregister to all holiday cup tournaments...')
+# async def unregister(ctx):
+#     if str(ctx.channel.id) in gamechan:
+#         with open(f_teams, "r+") as tfile:
+#             user = ctx.interaction.user
+#             user_id = str(user.id)
+#             tlines = tfile.readlines()
+#             tfile.seek(0)
+#             for line in tlines:
+#                 if user_id not in line:
+#                     tfile.write(line)
+#             tfile.truncate()
+#             with open(f_players, "r+") as pfile:
+#                 user = ctx.interaction.user
+#                 user_id = str(user.id)
+#                 tlines = pfile.readlines()
+#                 pfile.seek(0)
+#                 for line in tlines:
+#                     if user_id not in line:
+#                         pfile.write(line)
+#                 pfile.truncate()
+#             with open(f_sharedRegistration, "r+") as sharedRegistrationFile:
+#                 if user_id in sharedRegistrationFile.read():
+#                     lines = sharedRegistrationFile.readlines()
+#                     sharedRegistrationFile.seek(0)
+#                     for line in lines:
+#                         if line != user_id:
+#                             sharedRegistrationFile.write(line)
+#                     sharedRegistrationFile.truncate()
+#                 await ctx.respond("You have been unregistered to all holiday cup tournaments. You can use /register to rejoin a tournament.", ephemeral=True)
 
 @bot.command(name='view')
 async def change(ctx, user: discord.User):
@@ -190,6 +268,10 @@ async def match(ctx, user1: discord.User, user2: discord.User, overtime: bool):
 async def game(ctx):
     if str(ctx.channel.id) in gamechan:
         user_id = str(ctx.interaction.user.id)
+        with open(f_teams, "r") as tfile:
+            if user_id not in tfile.read():
+                await ctx.respond("You don't seem to have a team registered for this tournament. Do /register to enter the tournament.")
+                return()
         user_name = str(ctx.interaction.user)
         default_color = 0x00ff00
         embedmenu = discord.Embed(
