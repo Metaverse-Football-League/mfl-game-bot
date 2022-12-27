@@ -391,13 +391,13 @@ async def simulate(id, vs, event, ot):
                         if success == 1:
 
                             if team == "home":
-                                score_home += 0
+                                score_home += 1
                                 score = Score(score_home, score_away, penhome, penaway)
                                 if event != "versus":
                                     await register_goals(whoplay, teamsname.home, leads)
 
                             else:
-                                score_away += 0
+                                score_away += 1
                                 score = Score(score_home, score_away, penhome, penaway)
                                 if event != "versus":
                                     await register_goals(whoplay, teamsname.away, leads)
