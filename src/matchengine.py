@@ -142,6 +142,7 @@ async def simulate(id, vs, event, ot):
     score_away = 0
     penhome = 0
     penaway = 0
+    cap_action = False
     score = Score(score_home, score_away, penhome, penaway)
     minutes = randint(92, 96)
     otminutes = randint(120,122)
@@ -181,6 +182,7 @@ async def simulate(id, vs, event, ot):
     def get_actions(team):
         ## Define scoring probabilities
         what = randint(1, 20)
+        reverse = False
 
         shootprob = [0,3,9,15,18,24,30,42,57,72,100]
 
@@ -208,7 +210,13 @@ async def simulate(id, vs, event, ot):
             indice = randint(2,11)
 
         if what == "Fault":
-            number = randint(1,15)
+            if bonus > 10:
+                number = randint(1,40)
+                tryreverse = randint(1,3)
+                if tryreverse > 2:
+                    reverse = True
+            else:
+                number = randint(1,15)
             if number > 10:
                 success = 0
             elif 10 >= number > 2:
@@ -217,12 +225,20 @@ async def simulate(id, vs, event, ot):
                 success = 2
 
         if team == "home":
-            teamname = team_name_home
-            who = playershome[indice]
+            if reverse is False:
+                teamname = team_name_home
+                who = playershome[indice]
+            else:
+                teamname = team_name_away
+                who = playersaway[indice]
 
         if team == "away":
-            teamname = team_name_away
-            who = playersaway[indice]
+            if reverse is True:
+                teamname = team_name_away
+                who = playersaway[indice]
+            else:
+                teamname = team_name_home
+                who = playershome[indice]
 
         return who, teamname, what, team, success
 
@@ -309,7 +325,8 @@ async def simulate(id, vs, event, ot):
     matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
     finish = False
     ### Penalties start
-    nb = 1
+    anb = 1
+    hnb = 1
     penhome = 0
     penaway = 0
 
@@ -318,6 +335,11 @@ async def simulate(id, vs, event, ot):
     while finish is False:
 
         while i < minutes:
+
+            if abs(score_home - score_away) > 3:
+                if cap_action is False:
+                    nb_actions = round(nb_actions/2)
+                    cap_action = True
 
             ## Recheck team value (can change during game)
             home_ovr_list = []
@@ -440,13 +462,29 @@ async def simulate(id, vs, event, ot):
 
                     while finish is False:
 
-                        rd = nb % 12
-                        if rd == 0:
-                            rd = 1
-                            nb = 1
+                        #### Check red-carded players
+                        hshooters = []
+                        ashooters = []
 
-                        curplayer_h = playershome[-rd]
-                        curplayer_a = playersaway[-rd]
+                        for x in playershome:
+                            if x.isRedCard != True:
+                                hshooters.append(x)
+                        for y in playersaway:
+                            if y.isRedCard != True:
+                                ashooters.append(x)
+
+                        h_shoot = hnb % int(len(hshooters)+1)
+                        if h_shoot == 0:
+                            h_shoot = 1
+                            hnb = 1
+
+                        a_shoot = anb % int(len(ashooters)+1)
+                        if a_shoot == 0:
+                            a_shoot = 1
+                            anb = 1
+
+                        curplayer_h = hshooters[-h_shoot]
+                        curplayer_a = ashooters[-a_shoot]
 
                         score = Score(score_home, score_away, penhome, penaway)
                         commentary = commentaries.getCommentary('willPenalty',
@@ -481,13 +519,14 @@ async def simulate(id, vs, event, ot):
                         matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
                         eventlist.append(matchevent)
 
-                        nb += 1
-                        if nb <= 5:
-                            if abs(penhome - penaway) > 5 - nb:
+                        if hnb <= 5:
+                            if abs(penhome - penaway) > 5 - hnb:
                                 finish = True
                         else:
                             if penhome != penaway:
                                 finish = True
+                        anb += 1
+                        hnb += 1
 
                     score = Score(score_home, score_away, penhome, penaway)
                     commentaryKey = 'homeWin' if penhome > penaway else "awayWin"
