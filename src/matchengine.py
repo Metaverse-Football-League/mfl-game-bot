@@ -391,13 +391,13 @@ async def simulate(id, vs, event, ot):
                         if success == 1:
 
                             if team == "home":
-                                score_home += 1
+                                score_home += 0
                                 score = Score(score_home, score_away, penhome, penaway)
                                 if event != "versus":
                                     await register_goals(whoplay, teamsname.home, leads)
 
                             else:
-                                score_away += 1
+                                score_away += 0
                                 score = Score(score_home, score_away, penhome, penaway)
                                 if event != "versus":
                                     await register_goals(whoplay, teamsname.away, leads)
@@ -460,18 +460,18 @@ async def simulate(id, vs, event, ot):
                     matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
                     eventlist.append(matchevent)
 
+                    #### Check red-carded players
+                    hshooters = []
+                    ashooters = []
+
+                    for x in playershome:
+                        if x.isRedCard != True:
+                            hshooters.append(x)
+                    for y in playersaway:
+                        if y.isRedCard != True:
+                            ashooters.append(y)
+
                     while finish is False:
-
-                        #### Check red-carded players
-                        hshooters = []
-                        ashooters = []
-
-                        for x in playershome:
-                            if x.isRedCard != True:
-                                hshooters.append(x)
-                        for y in playersaway:
-                            if y.isRedCard != True:
-                                ashooters.append(x)
 
                         h_shoot = hnb % int(len(hshooters)+1)
                         if h_shoot == 0:
