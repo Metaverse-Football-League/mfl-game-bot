@@ -48,8 +48,20 @@ bot = discord.Bot()
 adminid = config["adminId"]
 gamechan = config["gameChan"]
 
-async def callmatch(team1, team2, event, ot):
-    match = await matchengine.play(str(team1), str(team2), event, ot)
+# minor
+#color1 = 0xe0e0e0
+#color2 = 0xfefefe
+
+# major
+color1 = 0x2196f3
+color2 = 0x1670b7
+
+# masters
+#color1 = 0xda7aca
+#color2 = 0x890eea
+
+async def callmatch(team1, team2, event, ot, color):
+    match = await matchengine.play(str(team1), str(team2), event, ot, color)
     view = View()
     color = 0x00ff00
     embedmenu = discord.Embed(
@@ -83,7 +95,7 @@ def seconds_until_matches_start():
 @tasks.loop(seconds=86400)
 async def called_once_a_day():
     print("Start matches")
-#     await asyncio.sleep(seconds_until_matches_start())
+     await asyncio.sleep(seconds_until_matches_start())
     now = datetime.now()
     nyear = now.year
     nmonth = now.month
@@ -109,15 +121,21 @@ async def called_once_a_day():
 
         if (year == nyear) and (month == nmonth) and (day == nday):
             print("Start match")
-            view, embedmenu, match = await callmatch(team1, team2, event, overtime)
+            view, embedmenu, match = await callmatch(team1, team2, event, overtime, color2)
 
-            default_color = 0x00ffff
+            default_color = color1
             embedpre = discord.Embed(
                 title='MFL Discord Game', color=default_color)
             description = "\nWelcome !\nThe following match will face <@"+team1+"> vs <@"+team2+"> in the " + config["cupName"]  + ".\nIt will start in 10 seconds."
             embedpre.add_field(name="Tournament", value=description, inline=True)
             await message_channel.send("\u200b", embed=embedpre)
-            await asyncio.sleep(10)
+
+            await asyncio.sleep(5)
+
+            embedteam1 = await teams.getBest(str(team1),str(team2),color1)
+            await message_channel.send("\u200b", embed=embedteam1)
+
+            await asyncio.sleep(5)
             showmenu = await message_channel.send("\u200b", view=view, embed=embedmenu)
 
             for x in match:
@@ -128,9 +146,9 @@ async def called_once_a_day():
                 title='MFL Discord Game', color=default_color)
             description = "\nThanks <@"+team1+"> vs <@"+team2+"> for this beautiful match."
             embedpost.add_field(name="Tournament", value=description, inline=True)
-            teams = match[len(match) - 1].fields[0].name
+            teamname = match[len(match) - 1].fields[0].name
             result = match[len(match) - 1].fields[0].value
-            embedpost.add_field(name=teams, value=result, inline=False)
+            embedpost.add_field(name=teamname, value=result, inline=False)
 
             await message_channel.send("\u200b", embed=embedpost)
             await asyncio.sleep(1)
