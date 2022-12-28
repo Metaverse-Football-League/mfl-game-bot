@@ -584,7 +584,7 @@ async def simulate(id, vs, event, ot):
 
 
 #### SIMULATE MATCHES ####
-async def play(id, vs, events, ot):
+async def play(id, vs, events, ot, color):
     user_id = str(id)
     eventlist = await simulate(user_id, vs, events, ot)
 
@@ -608,7 +608,7 @@ async def play(id, vs, events, ot):
     elif note == 5:
         note = "⭐⭐⭐⭐⭐"
 
-    default_color = 0xffff00
+    default_color = color
     embedlist = []
 
     nogoal = "\u200b"
