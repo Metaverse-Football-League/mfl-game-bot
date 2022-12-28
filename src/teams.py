@@ -75,6 +75,69 @@ async def getAll(id):
 
         return embedteam
 
+
+async def getBest(id1, id2):
+    user1_id = str(id1)
+    user2_id = str(id2)
+
+    default_color = 0x00ffff
+
+    embedteam = discord.Embed(
+        title="Before match", description="Let's focus on best players for each team !", color=default_color)
+
+    async def checkPlayers(id):
+        team = await get(id)
+        if team is None:
+            return discord.Embed(title="No team found!", description="", color=default_color)
+        elif team == "Error":
+            return discord.Embed(title="Error", description="An error occurred during the request to get the teams.", color=default_color)
+        else:
+            p_info = await players.get(id)
+            team_name = team.split(",")[0]
+
+            i = 0
+
+            def sortbyOVR(player):
+                return player.ovr
+
+            man_name = p_info[0].displayName
+            p_info.sort(key=sortbyOVR, reverse=True)
+
+            embeddescription = ""
+
+            while i < 3:
+
+                name = p_info[i].displayName
+                ovr = p_info[i].ovr
+                pos = p_info[i].pos.upper()
+                nat = p_info[i].nat
+                rarity = p_info[i].rarity
+                rarity_flag = "⚫"
+
+                if rarity == "common":
+                    rarity_flag = "⚪"
+                elif rarity == "uncommon":
+                    rarity_flag = "🟢"
+                elif rarity == "rare":
+                    rarity_flag = "🔵"
+                elif rarity == "legend":
+                    rarity_flag = "🟣"
+
+                if len(pos) == 3:
+                    embeddescription = embeddescription + ":flag_" + nat + ":`" + pos + " " + str(ovr) + "`" + rarity_flag + " *" + name + "*\n"
+                else:
+                    embeddescription = embeddescription + ":flag_" + nat + ":`" + pos + "  " + str(ovr) + "`" + rarity_flag + " *" + name + "*\n"
+                i += 1
+
+            embedteam.add_field(name=team_name, value=embeddescription)
+
+    await checkPlayers(user1_id)
+    await checkPlayers(user2_id)
+
+    return embedteam
+
+
+
 async def find(id):
     with open(f_teams, "r") as tfile:
         teamfile = tfile.readlines()

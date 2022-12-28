@@ -109,6 +109,12 @@ async def called_once_a_day():
             description = "\nWelcome !\nThe following match will face <@"+team1+"> vs <@"+team2+">.\nIt will start in 2 minutes."
             embedpre.add_field(name="Tournament", value=description, inline=True)
             await message_channel.send("\u200b", embed=embedpre)
+
+            await asyncio.sleep(5)
+
+            embedteam1 = await teams.getBest(str(team1),str(team2))
+            await message_channel.send("\u200b", embed=embedteam1)
+
             await asyncio.sleep(5)
             showmenu = await message_channel.send("\u200b", view=view, embed=embedmenu)
 
@@ -120,9 +126,9 @@ async def called_once_a_day():
                 title='MFL Discord Game', color=default_color)
             description = "\nThanks <@"+team1+"> vs <@"+team2+"> for this beautiful match."
             embedpost.add_field(name="Tournament", value=description, inline=True)
-            teams = match[len(match) - 1].fields[0].name
+            teamname = match[len(match) - 1].fields[0].name
             result = match[len(match) - 1].fields[0].value
-            embedpost.add_field(name=teams, value=result, inline=False)
+            embedpost.add_field(name=teamname, value=result, inline=False)
 
             await message_channel.send("\u200b", embed=embedpost)
             await asyncio.sleep(120)
