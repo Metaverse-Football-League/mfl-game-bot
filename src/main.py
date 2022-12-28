@@ -95,7 +95,7 @@ def seconds_until_matches_start():
 @tasks.loop(seconds=86400)
 async def called_once_a_day():
     print("Start matches")
-     await asyncio.sleep(seconds_until_matches_start())
+    await asyncio.sleep(seconds_until_matches_start())
     now = datetime.now()
     nyear = now.year
     nmonth = now.month
