@@ -248,7 +248,7 @@ async def simulate(id, vs, event, ot):
                 who = playersaway[indice]
 
         if team == "away":
-            if reverse is True:
+            if reverse is False:
                 teamname = team_name_away
                 who = playersaway[indice]
             else:
@@ -775,7 +775,7 @@ async def play(id, vs, events, ot):
                 elif goals.team == away_name:
                     acard += "🟥 "+ goals.player + " " +str(goals.minute) + "'\n"
 
-        statsdesc = str(home_shoot) + "᲼👟᲼" +str(away_shoot) + "᲼᲼᲼" + str(home_yc) + "᲼🟨᲼" + str(away_yc) + "᲼᲼᲼" + str(home_rc) + "᲼🟥᲼" + str(away_rc)
+        statsdesc = "`"+str(home_shoot) + " 🥅 " +str(away_shoot) + "`   `" + str(home_yc) + " 🟨 " + str(away_yc) + "`   `" + str(home_rc) + " 🟥 " + str(away_rc)+"`"
         embedscore.add_field(name="\u200b", value=hgoal, inline=True)
         embedscore.add_field(name="\u200b", value=agoal, inline=True)
         embedscore.add_field(name="\u200b", value="**Events**", inline=False)

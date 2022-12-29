@@ -105,11 +105,19 @@ async def getBest(id1, id2):
 
             embeddescription = ""
 
-            while i < 3:
+            top = 3
+
+            while i < top:
 
                 name = p_info[i].displayName
                 ovr = p_info[i].ovr
                 pos = p_info[i].pos.upper()
+
+                if pos == "COACH":
+                    i += 1
+                    top = top + 1
+                    continue
+
                 nat = p_info[i].nat
                 rarity = p_info[i].rarity
                 rarity_flag = "⚫"
