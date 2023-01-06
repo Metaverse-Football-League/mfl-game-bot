@@ -83,7 +83,7 @@ async def getBest(id1, id2):
     default_color = 0x00ffff
 
     embedteam = discord.Embed(
-        title="Before match", description="Let's focus on best players for each team !", color=default_color)
+        title="Before match", description="Let's focus on the best players for each team !", color=default_color)
 
     async def checkPlayers(id):
         team = await get(id)
