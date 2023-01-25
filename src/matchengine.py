@@ -227,15 +227,17 @@ async def simulate(id, vs, event, ot):
         if what == "Fault":
             if bonus > 10:
                 number = randint(1,40)
-                tryreverse = randint(1,3)
-                if tryreverse > 2:
-                    reverse = True
             else:
                 number = randint(1,15)
+            tryreverse = randint(1,10)
+            if tryreverse > 6:
+                reverse = True
             if number > 10:
                 success = 0
             elif 10 >= number > 2:
                 success = 1
+                print(reverse)
+                print(team)
             else:
                 success = 2
 
@@ -244,8 +246,8 @@ async def simulate(id, vs, event, ot):
                 teamname = team_name_home
                 who = playershome[indice]
             else:
-                teamname = team_name_away
-                who = playersaway[indice]
+                team = "away"
+                reverse = False
 
         if team == "away":
             if reverse is False:
@@ -254,6 +256,7 @@ async def simulate(id, vs, event, ot):
             else:
                 teamname = team_name_home
                 who = playershome[indice]
+                team = "home"
 
         return who, teamname, what, team, success
 
