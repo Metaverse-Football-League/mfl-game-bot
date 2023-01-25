@@ -62,7 +62,6 @@ async def get(id, indice):
     }
 
     host = config["apiUrl"] + "/users/discord/"
-    ovrmax = int(config["ovrmax"])
     user_id = str(id)
     link = host+user_id+"/players"
     headers = {
@@ -72,6 +71,7 @@ async def get(id, indice):
     nfts = getnft.json()
 
     i = 0
+    realI = 0
 
     playerslist = []
     formatlist = []
@@ -86,9 +86,6 @@ async def get(id, indice):
             nation = nationality
         positions = nfts[i]['metadata']['positions'][0]
         ovr = int(nfts[i]['metadata']['overall'])
-        if ovr > ovrmax:
-            i += 1
-            continue
         firstName = nfts[i]['metadata']['firstName']
         lastName = nfts[i]['metadata']['lastName']
         displayName = firstName + " " + lastName
@@ -106,8 +103,9 @@ async def get(id, indice):
         playerslist.append(nation+","+positions+","+str(ovr)+","+displayName+","+rarity)
 
         i += 1
+        realI += 1
 
-        if (i % 5 == 0) or (i == len(nfts)):
+        if (realI % 5 == 0) or (i == len(nfts)):
             formatlist.append(playerslist)
             playerslist = []
             embeddesclist.append(embeddescription)

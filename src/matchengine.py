@@ -549,6 +549,13 @@ async def simulate(id, vs, event, ot):
                         matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
                         eventlist.append(matchevent)
 
+                        matchevent = MatchEvent(teamsname, score, curevent, "...", i, note)
+                        eventlist.append(matchevent)
+                        matchevent = MatchEvent(teamsname, score, curevent, "...", i, note)
+                        eventlist.append(matchevent)
+                        matchevent = MatchEvent(teamsname, score, curevent, "...", i, note)
+                        eventlist.append(matchevent)
+
                         hshoot = playpenalties(curplayer_h, playersaway[1])
                         if hshoot is True:
                             penhome += 1
@@ -564,6 +571,13 @@ async def simulate(id, vs, event, ot):
                         commentary = commentaries.getCommentary('willPenalty',
                                                                     {'PLAYER_TEAM': team_name_away, 'PLAYER_NAME': curplayer_a.displayName})
                         matchevent = MatchEvent(teamsname, score, curevent, commentary, i, note)
+                        eventlist.append(matchevent)
+
+                        matchevent = MatchEvent(teamsname, score, curevent, "...", i, note)
+                        eventlist.append(matchevent)
+                        matchevent = MatchEvent(teamsname, score, curevent, "...", i, note)
+                        eventlist.append(matchevent)
+                        matchevent = MatchEvent(teamsname, score, curevent, "...", i, note)
                         eventlist.append(matchevent)
 
                         ashoot = playpenalties(curplayer_a, playershome[1])
@@ -785,7 +799,7 @@ async def play(id, vs, events, ot):
         embedscore.add_field(name="\u200b", value=hcard, inline=True)
         embedscore.add_field(name="\u200b", value=acard, inline=True)
         embedscore.add_field(name="Stats", value=statsdesc, inline=False)
-        embedscore.add_field(name="Match Note", value=note, inline=False)
+        #embedscore.add_field(name="Match Note", value=note, inline=False)
 
         embedlist.append(embedscore)
 
