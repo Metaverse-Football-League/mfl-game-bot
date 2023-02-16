@@ -72,11 +72,11 @@ def check_quests(id, variable, value):
 
     quests = requests.get(url+'claimed-quests', params=filters, headers=headers)
     result = quests.json()
-    discordID = result['data'][0]['user']['discordId']
-    reviewID = result['data'][0]['id']
 
     if len(result['data']) > 0:
         try:
+            discordID = result['data'][0]['user']['discordId']
+            reviewID = result['data'][0]['id']
             uservalue = int(infos(discordID, variable))
             print(uservalue)
 
