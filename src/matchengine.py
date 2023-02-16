@@ -6,6 +6,7 @@ import teams
 import players
 import commentaries
 import nations
+import crew3
 from config import config
 
 f_goals = config["dataPath"] + "goals.csv"
@@ -633,6 +634,7 @@ async def simulate(id, vs, event, ot):
     elif (int(score_away + score_home) <= 2) and (note > 3):
         note = note - 1
 
+
     ### Points Leaderboard
     async def update_points_leaderboard(team, addpoints):
         status = 0
@@ -667,10 +669,16 @@ async def simulate(id, vs, event, ot):
     if (penhome or penaway) > 0:
         commentaryKey = "homeWinbyPen" if penhome > penaway else "awayWinbyPen"
         commentary = commentaries.getCommentary(commentaryKey, {'HOME_TEAM': team_name_home, 'AWAY_TEAM': team_name_away})
+        victory = 1 if penhome > penaway else 0
+
     else:
         commentaryKey = "homeWin" if score_home > score_away else "awayWin" if score_home < score_away else "draw"
         commentary = commentaries.getCommentary(commentaryKey, {'HOME_TEAM': team_name_home, 'AWAY_TEAM': team_name_away})
+        victory = 1 if penhome > penaway else 0
 
+
+    ### Register to Crew3
+    crew3.update(id, score_home, victory)
 
     # Goal reset
     curevent = "\u200b"

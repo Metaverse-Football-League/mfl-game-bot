@@ -178,3 +178,31 @@ async def find(id):
 
         return embedteam, teamlist
 
+async def rename(id, username, name):
+    print("called")
+    # Find team which owned by called player
+    with open(f_teams, "r+") as tfile:
+        teamfile = tfile.readlines()
+        status = 0
+        teams = []
+
+        if len(teamfile) > 0:
+            new_line = str(name)+","+str(id)+",yes,3,"+str(username)+",\n"
+            for line in teamfile:
+                uids = line.split(",")[1]
+                if uids == id:
+                    replace = line.replace(line, new_line)
+                    line = replace
+                    if "," not in line:
+                        line = ",,,,\n"
+                        status = 1
+
+                teams.append(line)
+        if status == 1:
+            tfile.write(new_line)
+        else:
+            tfile.seek(0)
+            tfile.truncate(0)
+            tfile.writelines(teams)
+
+        tfile.close()

@@ -10,5 +10,9 @@ config = {
     "gameChan": dotenvValues["GAME_CHAN"].split(","),
     "cooldown_scout": dotenvValues["CD_SCOUT"],
     "cooldown_match": dotenvValues["CD_MATCH"],
+    "crew3_api": dotenvValues["CREW3_API"],
+    "crew3_reset": dotenvValues["CREW3_RESET"],
+    "crew3_community": dotenvValues["CREW3_COMMUNITY"],
+    "crew3_quests": dotenvValues["CREW3_QUESTS"],
     "dataPath": "../data/",
 }
