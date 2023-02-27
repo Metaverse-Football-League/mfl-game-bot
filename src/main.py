@@ -290,6 +290,12 @@ async def game(ctx):
                                        emoji="⚽")
                 view_opponents.add_item(button_random)
 
+                #### PVE event against MFL Team
+                button_mfl = Button(label="vs MFL", style=discord.ButtonStyle.blurple, custom_id="1",
+                                       emoji="⚽")
+                view_opponents.add_item(button_mfl)
+
+                """
                 i = 1
                 for x in list_teams:
                     teamName = x.split(",")[0]
@@ -302,6 +308,7 @@ async def game(ctx):
                         button_vs2 = Button(label=teamName, style=discord.ButtonStyle.green, custom_id=str(teamId))
                         view_opponents.add_item(button_vs2)
                     i += 1
+                """
 
                 view_opponents.add_item(button_return)
 
@@ -354,8 +361,9 @@ async def game(ctx):
                                 continue
 
                 button_random.callback = button_vs_callback
-                button_vs1.callback = button_vs_callback
-                button_vs2.callback = button_vs_callback
+                button_mfl.callback = button_vs_callback
+                #button_vs1.callback = button_vs_callback
+                #button_vs2.callback = button_vs_callback
                 if button_ev1:
                     button_ev1.callback = button_vs_callback
                 if button_ev2:

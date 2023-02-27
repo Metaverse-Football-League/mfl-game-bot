@@ -174,7 +174,7 @@ async def find(id):
 
         embedopponents = "`" + teamlist[0].split(",")[0] + "` *" + teamlist[0].split(",")[2] + "*\n"
         embedopponents = embedopponents + "`" + teamlist[1].split(",")[0] + "` *" + teamlist[1].split(",")[2] + "*\n"
-        embedteam.add_field(name="Opponents", value=embedopponents)
+        #embedteam.add_field(name="Opponents", value=embedopponents)
 
         return embedteam, teamlist
 
