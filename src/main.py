@@ -11,6 +11,7 @@ import players
 import teams
 import cooldown
 import nations
+import crew3
 from config import config
 import discordUtils
 from datetime import datetime, timedelta
@@ -33,6 +34,7 @@ f_events = config["dataPath"] + "events.csv"
 ## Matches (user1, user2, date)
 f_matchs = config["dataPath"] + "matchs.csv"
 
+f_quests = config["dataPath"] + "quests.csv"
 #load_dotenv(dotenv_path="config")
 intents = discord.Intents.all()
 
@@ -63,6 +65,37 @@ async def callmatch(team1, team2, event, ot):
 async def on_ready():
     print("Bot Ready")
 
+hour,minutes = config["crew3_reset"].split(":")
+
+def seconds_until_midnight():
+    now = datetime.now()
+    target = (now + timedelta(days=0)).replace(hour=int(hour), minute=int(minutes), second=0, microsecond=0)
+    diff = (target - now).total_seconds()
+    if diff < 0:
+        target = (now + timedelta(days=1)).replace(hour=int(hour), minute=int(minutes), second=0, microsecond=0)
+        diff = 86400 - abs(diff)
+    print(f"{target} - {now} = {diff}")
+    return diff
+@tasks.loop(seconds=1)
+async def called_once_a_day():
+    await asyncio.sleep(seconds_until_midnight())
+    crew3.reset_file(f_quests)
+
+@called_once_a_day.before_loop
+async def before():
+    await bot.wait_until_ready()
+
+@tasks.loop(seconds=600)
+async def check_crew3_quests():
+    crew3.callquests()
+
+@check_crew3_quests.before_loop
+async def before():
+    await bot.wait_until_ready()
+
+called_once_a_day.start()
+check_crew3_quests.start()
+
 #### CREATE TEAM ####
 @bot.command(name='create', description='The first step to enter into the game...')
 async def create(ctx):
@@ -91,12 +124,23 @@ async def create(ctx):
                 await players.create(team_id, username)
                 await ctx.respond("Team " + teamname + " created !", ephemeral=True)
 
+        with open(f_quests, "r+") as qfile:
+            if team_id not in qfile.read():
+                qfile.write("\n"+str(team_id)+",0,0,0,0,0,0,")
+
 @bot.command(name='view')
 async def change(ctx, user: discord.User):
     if str(ctx.channel.id) in gamechan:
         embedteam = await teams.getAll(str(user.id))
         await ctx.respond(embed=embedteam, ephemeral=False)
 
+@bot.command(name='rename')
+async def rename(ctx, team_name):
+    if str(ctx.channel.id) in gamechan:
+        user = ctx.interaction.user
+        user_id = str(user.id)
+        await teams.rename(user_id, user.name, team_name)
+        await ctx.respond("Team successfully renamed with "+team_name)
 
 @bot.command(name='match', description="Start a match !", hidden=True)
 async def match(ctx, user1: discord.User, user2: discord.User, overtime: bool):
@@ -246,6 +290,12 @@ async def game(ctx):
                                        emoji="⚽")
                 view_opponents.add_item(button_random)
 
+                #### PVE event against MFL Team
+                button_mfl = Button(label="vs MFL", style=discord.ButtonStyle.blurple, custom_id="1",
+                                       emoji="⚽")
+                view_opponents.add_item(button_mfl)
+
+                """
                 i = 1
                 for x in list_teams:
                     teamName = x.split(",")[0]
@@ -258,6 +308,7 @@ async def game(ctx):
                         button_vs2 = Button(label=teamName, style=discord.ButtonStyle.green, custom_id=str(teamId))
                         view_opponents.add_item(button_vs2)
                     i += 1
+                """
 
                 view_opponents.add_item(button_return)
 
@@ -310,8 +361,9 @@ async def game(ctx):
                                 continue
 
                 button_random.callback = button_vs_callback
-                button_vs1.callback = button_vs_callback
-                button_vs2.callback = button_vs_callback
+                button_mfl.callback = button_vs_callback
+                #button_vs1.callback = button_vs_callback
+                #button_vs2.callback = button_vs_callback
                 if button_ev1:
                     button_ev1.callback = button_vs_callback
                 if button_ev2:

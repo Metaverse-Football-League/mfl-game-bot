@@ -6,10 +6,16 @@ import teams
 import players
 import commentaries
 import nations
+import crew3
 from config import config
 
 f_goals = config["dataPath"] + "goals.csv"
 f_points = config["dataPath"] + "points.csv"
+
+#### PVE teams
+mflteam = "1"
+pvelist = [mflteam]
+
 
 class Teams:
     def __init__(self, home, away):
@@ -113,19 +119,6 @@ async def simulate(id, vs, event, ot):
     except:
         team_form_away = 3
 
-    away_man = playersaway[0]
-    away_ovr_list = []
-    for x in playersaway:
-        if x == "Manager":
-            continue
-        if x.pos != "COACH":
-            x.form = player_form(team_form_away)
-            x.ovr += x.form
-            away_ovr_list.append(x.ovr)
-
-    away_ovr = round(sum(away_ovr_list) / len(away_ovr_list))
-
-
     ### Home team stats
     team_name_home = t_info.split(",")[0]
     team_form_home = t_info.split(",")[3]
@@ -143,6 +136,26 @@ async def simulate(id, vs, event, ot):
             home_ovr_list.append(x.ovr)
 
     home_ovr = round(sum(home_ovr_list) / len(home_ovr_list))
+
+    ### PVE overrides
+    fix_ovr = False
+    if vs == mflteam:
+        bonus = randint(-4, 4)
+        away_ovr = home_ovr + bonus
+        fix_ovr = True
+
+    away_man = playersaway[0]
+    away_ovr_list = []
+    for x in playersaway:
+        if x == "Manager":
+            continue
+        if x.pos != "COACH":
+            x.form = player_form(team_form_away)
+            x.ovr += x.form
+            away_ovr_list.append(x.ovr)
+
+    if fix_ovr is False:
+        away_ovr = round(sum(away_ovr_list) / len(away_ovr_list))
 
     ### Matchs initialisation
     score_home = 0
@@ -236,8 +249,6 @@ async def simulate(id, vs, event, ot):
                 success = 0
             elif 10 >= number > 2:
                 success = 1
-                print(reverse)
-                print(team)
             else:
                 success = 2
 
@@ -378,10 +389,10 @@ async def simulate(id, vs, event, ot):
                 if x.pos != "COACH":
                     away_ovr_list.append(x.ovr)
 
-            away_ovr = round(sum(away_ovr_list) / len(away_ovr_list))
+            if fix_ovr is False:
+                away_ovr = round(sum(away_ovr_list) / len(away_ovr_list))
 
             home_bonus = round(home_ovr - away_ovr)
-
             ## Give a balance between the 2 teams (if same OVR : 1-50 and 51-100 to find who makes the action)
             ratio = round(50 + 2 * home_bonus)
 
@@ -633,6 +644,7 @@ async def simulate(id, vs, event, ot):
     elif (int(score_away + score_home) <= 2) and (note > 3):
         note = note - 1
 
+
     ### Points Leaderboard
     async def update_points_leaderboard(team, addpoints):
         status = 0
@@ -667,10 +679,20 @@ async def simulate(id, vs, event, ot):
     if (penhome or penaway) > 0:
         commentaryKey = "homeWinbyPen" if penhome > penaway else "awayWinbyPen"
         commentary = commentaries.getCommentary(commentaryKey, {'HOME_TEAM': team_name_home, 'AWAY_TEAM': team_name_away})
+        victory = 1 if penhome > penaway else 0
+
     else:
         commentaryKey = "homeWin" if score_home > score_away else "awayWin" if score_home < score_away else "draw"
         commentary = commentaries.getCommentary(commentaryKey, {'HOME_TEAM': team_name_home, 'AWAY_TEAM': team_name_away})
+        victory = 1 if score_home > score_away else 0
 
+    pve = 0
+    if victory > 0:
+        if vs in pvelist:
+            pve = 1
+
+    ### Register to Crew3
+    crew3.update(id, score_home, victory, pve)
 
     # Goal reset
     curevent = "\u200b"
